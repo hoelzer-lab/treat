@@ -4,6 +4,7 @@
 * TREAT WORKFLOW -- TanscRiptome EvaluATion
 *
 * Author: hoelzer.martin@gmail.com
+* Author: lasse.faber@gmail.com
 */
 
 nextflow.preview.dsl=2
