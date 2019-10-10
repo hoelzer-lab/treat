@@ -1,0 +1,161 @@
+Oct-10 20:58:58.769 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq
+Oct-10 20:58:59.150 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
+Oct-10 20:58:59.167 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [clever_nobel] - revision: af2c23e6d3
+Oct-10 20:58:59.186 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /Users/mhoelzer/git/treat/nextflow.config
+Oct-10 20:58:59.188 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /Users/mhoelzer/git/treat/nextflow.config
+Oct-10 20:58:59.257 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Oct-10 20:59:00.224 [main] DEBUG nextflow.Session - Session uuid: e35d3ace-7794-461f-a69b-d6cfece3a3ce
+Oct-10 20:59:00.224 [main] DEBUG nextflow.Session - Run name: clever_nobel
+Oct-10 20:59:00.225 [main] DEBUG nextflow.Session - Executor pool size: 4
+Oct-10 20:59:00.280 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 19.07.0 build 5106
+  Created: 27-07-2019 13:22 UTC (14:22 BST)
+  System: Mac OS X 10.14.6
+  Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_152-release-1056-b12
+  Encoding: UTF-8 (UTF-8)
+  Process: 87156@C02M30TJFH05 [92.242.132.24]
+  CPUs: 4 - Mem: 16 GB (347.1 MB) - Swap: 1 GB (998.5 MB)
+Oct-10 20:59:00.308 [main] DEBUG nextflow.Session - Work-dir: /tmp/nextflow-work-mhoelzer [Mac OS X]
+Oct-10 20:59:00.309 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /Users/mhoelzer/git/treat/bin
+Oct-10 20:59:00.686 [main] DEBUG nextflow.Session - Session start invoked
+Oct-10 20:59:01.155 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Oct-10 20:59:01.227 [main] WARN  nextflow.NextflowMeta$Preview - DSL 2 IS AN EXPERIMENTAL FEATURE UNDER DEVELOPMENT -- SYNTAX MAY CHANGE IN FUTURE RELEASE
+Oct-10 20:59:01.729 [main] DEBUG nextflow.script.ProcessConfig - Config settings `withLabel:HISAT2` matches label `HISAT2` for process with name HISAT2
+Oct-10 20:59:01.737 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Oct-10 20:59:01.738 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Oct-10 20:59:01.744 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Oct-10 20:59:01.749 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=4; memory=16 GB; capacity=4; pollInterval=100ms; dumpInterval=5m
+Oct-10 20:59:01.813 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > HISAT2 -- maxForks: 4
+Oct-10 20:59:01.850 [main] DEBUG nextflow.Session - Ignite dataflow network (2)
+Oct-10 20:59:01.880 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
+Oct-10 20:59:01.881 [main] DEBUG nextflow.Session - Session await
+Oct-10 20:59:02.224 [Task submitter] DEBUG nextflow.executor.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Oct-10 20:59:02.237 [Task submitter] INFO  nextflow.Session - [a9/5dd86e] Submitted process > HISAT2 (1)
+Oct-10 20:59:35.077 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: HISAT2 (1); status: COMPLETED; exit: 0; error: -; workDir: /tmp/nextflow-work-mhoelzer/a9/5dd86ec65ccf57709df475bcea8cb5]
+Oct-10 20:59:35.129 [Task monitor] ERROR nextflow.processor.TaskProcessor - Error executing process > 'HISAT2 (1)'
+
+Caused by:
+  Missing value declared as output parameter: assembly_id
+
+Command executed:
+
+  hisat2-build rna-spades.fasta rna-spades 
+  hisat2 -x rna-spades -U eco.fastq -p null | samtools view -bS | samtools sort -T tmp --threads null > rna-spades.sorted.bam
+
+Command exit status:
+  0
+
+Command output:
+    bucket 5: 10%
+    bucket 5: 20%
+    bucket 5: 30%
+    bucket 5: 40%
+    bucket 5: 50%
+    bucket 5: 60%
+    bucket 5: 70%
+    bucket 5: 80%
+    bucket 5: 90%
+    bucket 5: 100%
+    Sorting block of length 172931 for bucket 5
+    (Using difference cover)
+    Sorting block time: 00:00:00
+  Returning block of 172932 for bucket 5
+  Getting block 6 of 7
+    Reserving size (207337) for bucket 6
+    Calculating Z arrays for bucket 6
+    Entering block accumulator loop for bucket 6:
+    bucket 6: 10%
+    bucket 6: 20%
+    bucket 6: 30%
+    bucket 6: 40%
+    bucket 6: 50%
+    bucket 6: 60%
+    bucket 6: 70%
+    bucket 6: 80%
+    bucket 6: 90%
+    bucket 6: 100%
+    Sorting block of length 188724 for bucket 6
+    (Using difference cover)
+    Sorting block time: 00:00:00
+  Returning block of 188725 for bucket 6
+  Getting block 7 of 7
+    Reserving size (207337) for bucket 7
+    Calculating Z arrays for bucket 7
+    Entering block accumulator loop for bucket 7:
+    bucket 7: 10%
+    bucket 7: 20%
+    bucket 7: 30%
+    bucket 7: 40%
+    bucket 7: 50%
+    bucket 7: 60%
+    bucket 7: 70%
+    bucket 7: 80%
+    bucket 7: 90%
+    bucket 7: 100%
+    Sorting block of length 119506 for bucket 7
+    (Using difference cover)
+    Sorting block time: 00:00:00
+  Returning block of 119507 for bucket 7
+
+Command error:
+                       (L,0.0,-0.2)
+  
+   Reporting:
+    -k <int> (default: 5) report up to <int> alns per read
+  
+   Paired-end:
+    -I/--minins <int>  minimum fragment length (0), only valid with --no-spliced-alignment
+    -X/--maxins <int>  maximum fragment length (500), only valid with --no-spliced-alignment
+    --fr/--rf/--ff     -1, -2 mates align fw/rev, rev/fw, fw/fw (--fr)
+    --no-mixed         suppress unpaired alignments for paired reads
+    --no-discordant    suppress discordant alignments for paired reads
+  
+   Output:
+    -t/--time          print wall-clock time taken by search phases
+    --un <path>           write unpaired reads that didn't align to <path>
+    --al <path>           write unpaired reads that aligned at least once to <path>
+    --un-conc <path>      write pairs that didn't align concordantly to <path>
+    --al-conc <path>      write pairs that aligned concordantly at least once to <path>
+    (Note: for --un, --al, --un-conc, or --al-conc, add '-gz' to the option name, e.g.
+    --un-gz <path>, to gzip compress output, or add '-bz2' to bzip2 compress output.)
+    --summary-file     print alignment summary to this file.
+    --new-summary      print alignment summary in a new style, which is more machine-friendly.
+    --quiet            print nothing to stderr except serious errors
+    --met-file <path>  send metrics to file at <path> (off)
+    --met-stderr       send metrics to stderr (off)
+    --met <int>        report internal counters & metrics every <int> secs (1)
+    --no-head          supppress header lines, i.e. lines starting with @
+    --no-sq            supppress @SQ header lines
+    --rg-id <text>     set read group id, reflected in @RG line and RG:Z: opt field
+    --rg <text>        add <text> ("lab:value") to @RG line of SAM header.
+                       Note: @RG line only printed when --rg-id is set.
+    --omit-sec-seq     put '*' in SEQ and QUAL fields for secondary alignments.
+  
+   Performance:
+    -o/--offrate <int> override offrate of index; must be >= index's offrate
+    -p/--threads <int> number of alignment threads to launch (1)
+    --reorder          force SAM output order to match order of input reads
+    --mm               use memory-mapped I/O for index; many 'hisat2's can share
+  
+   Other:
+    --qc-filter        filter out reads that are bad according to QSEQ filter
+    --seed <int>       seed for random number generator (0)
+    --non-deterministic seed rand. gen. arbitrarily instead of using read attributes
+    --remove-chrname   remove 'chr' from reference names in alignment
+    --add-chrname      add 'chr' to reference names in alignment 
+    --version          print version information and quit
+    -h/--help          print this usage message
+  Error: Encountered internal HISAT2 exception (#1)
+  Command: /opt/conda/bin/hisat2-align-s --wrapper basic-0 -x rna-spades -p null -U eco.fastq 
+  (ERR): hisat2-align exited with value 1
+
+Work dir:
+  /tmp/nextflow-work-mhoelzer/a9/5dd86ec65ccf57709df475bcea8cb5
+
+Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
+Oct-10 20:59:35.253 [Task monitor] DEBUG nextflow.Session - Session aborted -- Cause: Missing value declared as output parameter: assembly_id
+Oct-10 20:59:35.255 [main] DEBUG nextflow.Session - Session await > all process finished
+Oct-10 20:59:35.282 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Oct-10 20:59:35.293 [main] DEBUG nextflow.trace.StatsObserver - Workflow completed > WorkflowStats[succeedCount=0; failedCount=1; ignoredCount=0; cachedCount=0; succeedDuration=0ms; failedDuration=2m 11s; cachedDuration=0ms]
+Oct-10 20:59:35.471 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
+Oct-10 20:59:35.527 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

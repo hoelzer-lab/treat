@@ -1,0 +1,4 @@
+2019-10-10 20:58:20	-	prickly_volhard	-	55c8c3342791ad67a73a1912d968b587	6271f140-e7d7-40cb-b74a-125d521ec6ef	nextflow run main.nf --help
+2019-10-10 20:58:35	-	elated_mcclintock	-	55c8c3342791ad67a73a1912d968b587	10bd15d2-b8ee-4c15-8c07-9dfe17fe155c	nextflow run main.nf --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq
+2019-10-10 20:59:00	35.5s	clever_nobel	ERR	af2c23e6d3f220ffdc3d64129a13d123	e35d3ace-7794-461f-a69b-d6cfece3a3ce	nextflow run main.nf --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq
+2019-10-10 21:02:00	11.7s	cranky_bartik	OK	af2c23e6d3f220ffdc3d64129a13d123	079ffd40-28ba-47eb-8e64-1193d3fa1eaa	nextflow run main.nf --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq

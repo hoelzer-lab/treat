@@ -8,7 +8,6 @@
 */
 
 nextflow.preview.dsl=2
-include 'modules/treat'
 
 def helpMSG() {
     log.info """
@@ -44,6 +43,8 @@ reads_ch = Channel
               .fromPath(params.reads)
               .map { file -> tuple(file.simpleName, file) }
 
+include 'modules/hisat2' params(output: params.output)
+include 'modules/busco' params(output: params.output)
 
-HISAT2( assemblies_ch, reads_ch, params.threads)
-BUSCO( assemblies_ch, params.busco_dataset, params.threads )
+HISAT2( assemblies_ch, reads_ch)
+//BUSCO( assemblies_ch, params.busco_dataset, params.threads )
