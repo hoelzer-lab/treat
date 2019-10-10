@@ -13,6 +13,8 @@
 work/
 results/
 treat_results/
+.nextflow.*
+.nextflow/
 
 # Used by dotenv library to load environment variables.
 # .env
