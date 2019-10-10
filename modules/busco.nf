@@ -3,20 +3,20 @@
 */ 
 process BUSCO {
   label 'BUSCO'
-  publishDir params.outdir, mode:'copy'
+  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "short_summary_${name}.txt"
 
   input:
-  set assembly_id, file(assembly)
-  val busco_dataset
-  val threads
+  set val(name), file(assembly)
 
   output:
-  set assembly_id, file("run_${assembly_id}/short_summary_${assembly_id}.txt")
+  set val(name), file("short_summary_${name}.txt")
 
   shell:
   '''
-  run_busco -i !{assembly} -o !{assembly_id} -l /!{busco_dataset}/ -m tran -c !{threads}
+  run_busco -i !{assembly} -o !{name} -l !{params.db}/ -m tran -c !{params.threads}
+  cp run_!{name}/short_summary_!{name}.txt .
   '''
 }
 
-
+/* Comments:
+*/
