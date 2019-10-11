@@ -35,7 +35,7 @@ It also comes with a "auto-download" if a database is not available. Doing it th
 // get BUSCO db
 include 'modules/buscoGetDB' //params(db: params.busco)
 buscoGetDB(params.busco) 
-db_busco = buscoGetDB.out.view()
+db_busco = buscoGetDB.out
 
 
 // MAIN WORKFLOW
