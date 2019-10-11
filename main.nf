@@ -33,16 +33,18 @@ It also comes with a "auto-download" if a database is not available. Doing it th
 */
 
 // get BUSCO db
-include 'modules/buscoGetDB' params(db: params.busco_dataset)
-buscoGetDB() 
-db_busco = buscoGetDB.out
+include 'modules/buscoGetDB' //params(db: params.busco)
+buscoGetDB(params.busco) 
+db_busco = buscoGetDB.out.view()
 
+
+// MAIN WORKFLOW
 
 include 'modules/hisat2' params(output: params.output, dir: params.mappingdir, threads: params.threads)
-include 'modules/busco' params(output: params.output, db: db_busco, dir: params.buscodir, threads: params.threads)
+include 'modules/busco' params(output: params.output, dir: params.buscodir, threads: params.threads)
 
 HISAT2(assemblies_ch, reads_ch)
-//BUSCO(assemblies_ch)
+BUSCO(assemblies_ch, db_busco)
 
 
 def helpMSG() {
@@ -57,18 +59,19 @@ def helpMSG() {
     TREAT
     
     ${c_yellow}Usage example:${c_reset}
-    nextflow run hoelzer/treat --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq --threads 4 
+    nextflow run hoelzer/treat --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq --threads 4 --busco firmicutes_odb9
 
     ${c_yellow}Mandatory:${c_reset}
     ${c_green}--assemblies${c_reset}    e.g.: 'trinity.fasta spades.fasta orp.fasta' or '*.fasta' or '*/*.fasta'
     ${c_green}--reads${c_reset}         e.g.: 'trinity.fastq' or '*.fastq' or '*/*.fastq'
     ${c_green}--reference${c_reset}     reference genome
     ${c_green}--annotation${c_reset}    annotation file in gtf format corresponding to the reference file
+    ${c_green}--busco${c_reset}         the database used with BUSCO, see https://busco.ezlab.org/v2/frame_wget.html for a full list of available data sets and select one [default: $params.busco]
 
     ${c_yellow}Options${c_reset}
-    --threads                max cores for local use [default $params.threads]
-    --mem                    max memory in GB for local use [default $params.mem]
-    --output                 name of the result folder [default $params.output]
+    --threads                max cores for local use [default: $params.threads]
+    --mem                    max memory in GB for local use [default: $params.mem]
+    --output                 name of the result folder [default: $params.output]
 
     ${c_dim}Nextflow options:
     -with-report rep.html    cpu / ram usage (may cause errors)
@@ -76,6 +79,6 @@ def helpMSG() {
     -with-timeline time.html timeline (may cause errors)
 
     Profile:
-    -profile                 standard, googlegenomics [default: standard] ${c_reset}
+    -profile                 standard [uses docker], conda, googlegenomics [default: standard] ${c_reset}
     """.stripIndent()
 }
