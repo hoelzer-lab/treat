@@ -7,7 +7,7 @@
 
 _Treat your assemblies well!_
 
-A pipeline combining docker containers and nextflow for the evaluation of (_de
+A pipeline combining docker containers or conda environments and nextflow for the evaluation of (_de
 novo_) transcriptome assembly results.
 
 ## Execution
