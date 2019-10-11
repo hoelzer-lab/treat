@@ -1,3 +1,8 @@
+<!--[![Build Status](https://travis-ci.org/hoelzer/ribap.svg?branch=master)](https://travis-ci.org/hoelzer/ribap)-->
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![Nextflow](https://img.shields.io/badge/Language-Nextflow-green.svg)
+[![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/martinhoelzer?label=%40martinhoelzer&style=social)](https://twitter.com/martinhoelzer)
+
 # TREAT: TranscRiptome EvaluATion
 
 _Treat your assemblies well!_
@@ -21,9 +26,9 @@ nextflow run main.nf --assemblies test_data/rna-spades.fasta --reads test_data/e
 
 The workflow can be deployed in different environments. 
 
-* _standard_: uses docker containers and can be run locally
-* _conda_: uses conda environments and can be run locally
-* _googlegenomics: uses the google cloud and needs to configured manually to run with your gcloud environment
+* __standard__: uses docker containers and can be run locally
+* __conda__: uses conda environments and can be run locally
+* __googlegenomics__: uses the google cloud and needs to configured manually to run with your gcloud environment
 
 
 ## Motivation
