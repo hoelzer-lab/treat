@@ -9,6 +9,21 @@
 
 nextflow.preview.dsl=2
 
+// terminal prints
+println " "
+println "\u001B[32mProfile: $workflow.profile\033[0m"
+println " "
+println "\033[2mCurrent User: $workflow.userName"
+println "Nextflow-version: $nextflow.version"
+println "Starting time: $nextflow.timestamp"
+println "Workdir location:"
+println "  $workflow.workDir\u001B[0m"
+println " "
+if (workflow.profile == 'standard') {
+println "\033[2mCPUs to use: $params.threads"
+println "Output dir name: $params.output\u001B[0m"
+println " "}
+
 if (params.help) { exit 0, helpMSG() }
 if (params.profile) { exit 1, "--profile is WRONG use -profile" }
 if (params.assemblies == '') {exit 1, "--assemblies is a required parameter"}
@@ -21,6 +36,18 @@ assemblies_ch = Channel
 reads_ch = Channel
               .fromPath(params.reads)
               .map { file -> tuple(file.simpleName, file) }
+
+// illumina reads input & --list support. MIGHT be nicer as initial input read in
+/*
+if (params.illumina && params.list) { illumina_input_ch = Channel
+    .fromPath( params.illumina, checkIfExists: true )
+    .splitCsv()
+    .map { row -> ["${row[0]}", [file("${row[1]}"), file("${row[2]}")]] }
+    .view() }
+else if (params.illumina) { illumina_input_ch = Channel
+    .fromFilePairs( params.illumina , checkIfExists: true )
+    .view() }
+*/
 
 // DATABASES
 
