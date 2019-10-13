@@ -15,6 +15,7 @@ results/
 treat_results/
 .nextflow.*
 .nextflow/
+nextflow-autodownload-databases/
 
 # Used by dotenv library to load environment variables.
 # .env
