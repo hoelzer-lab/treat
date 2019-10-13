@@ -1,0 +1,5 @@
+name: DETONATE
+channels:
+  - bioconda
+dependencies:
+  - detonate

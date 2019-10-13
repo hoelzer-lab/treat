@@ -33,6 +33,10 @@ assemblies_ch = Channel
               .fromPath(params.assemblies)
               .map { file -> tuple(file.simpleName, file) }
 
+assemblies_fullname = Channel
+              .fromPath(params.assemblies)
+              .map { file -> tuple(file.fileName, file) }
+
 reads_ch = Channel
               .fromPath(params.reads)
               .map { file -> tuple(file.simpleName, file) }
@@ -69,9 +73,13 @@ db_busco = buscoGetDB.out
 
 include 'modules/hisat2' params(output: params.output, dir: params.mappingdir, threads: params.threads)
 include 'modules/busco' params(output: params.output, dir: params.buscodir, threads: params.threads)
+include 'modules/transrate' params(output: params.output, dir: params.transratedir, threads: params.threads)
+include 'modules/rnaquast' params(output: params.output, dir: params.rnaquastdir, threads: params.threads)
 
 HISAT2(assemblies_ch, reads_ch)
-BUSCO(assemblies_ch, db_busco)
+//BUSCO(assemblies_ch, db_busco)
+TRANSRATE(assemblies_ch)
+RNAQUAST(assemblies_ch)
 
 
 def helpMSG() {

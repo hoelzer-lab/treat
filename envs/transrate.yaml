@@ -1,0 +1,5 @@
+name: TRANSRATE
+channels:
+  - lmfaber
+dependencies:
+  - transrate=1.0.1
