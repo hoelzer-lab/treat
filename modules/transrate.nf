@@ -11,10 +11,11 @@ process TRANSRATE {
   output:
   set val(name), file("${name}/assemblies.csv")
   
+  
   shell:
-  '''
-  transrate --output !{name} --assembly !{assembly}
-  ''' 
+  """
+  transrate --output !{name} --assembly !{assembly} --reference ${params.transcripts}
+  """ 
 }
 
 /* Comments:

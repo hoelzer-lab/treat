@@ -3,18 +3,28 @@
 */
 process RNAQUAST {
   label 'RNAQUAST'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
+  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/short_report.tsv"
 
   input:
   set val(name), file(assembly)
+  set val(read_id), file(reads)
+  file(reference)
+  file(annotation)
 
   output:
-  set val(name), file("${name}/assemblies.csv")
+  set val(name), file("${name}/short_report.tsv")
   
   shell:
-  '''
-  rnaQUAST.py --help
-  ''' 
+  """
+  rnaQUAST.py --single_reads ${reads} \
+            --reference ${reference} \
+						--gtf ${annotation} \
+						--output_dir ${name} \
+						--threads !{params.threads} \
+						--transcripts ${assembly} \
+						-l !{name} \
+            --prokaryote
+  """ 
 }
 
 /* Comments:
