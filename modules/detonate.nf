@@ -36,7 +36,7 @@ process DETONATE2 {
   """
 }
 
-process DETONATE2 {
+process DETONATE3 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -53,7 +53,7 @@ samtools sort {args.outDir}/rsem_expr.transcript.bam {args.outDir}/rsem_expr.tra
   """
 }
 
-process DETONATE2 {
+process DETONATE4 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -70,7 +70,7 @@ process DETONATE2 {
   """
 }
 
-process DETONATE2 {
+process DETONATE5 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -87,7 +87,7 @@ process DETONATE2 {
   """
 }
 
-process DETONATE2 {
+process DETONATE6 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -105,7 +105,7 @@ process DETONATE2 {
 }
 
 
-process DETONATE2 {
+process DETONATE7 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -130,7 +130,7 @@ process DETONATE2 {
 }
 
 
-process DETONATE2 {
+process DETONATE8 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -162,7 +162,7 @@ process DETONATE2 {
 //assembly = abspath(assembly)  # absolute path
         //tool = basename_without_ext(assembly)  # basename without ext
 
-process DETONATE2 {
+process DETONATE9 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -180,7 +180,7 @@ rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters {a
 """
 }
 
-process DETONATE2 {
+process DETONATE10 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -203,7 +203,7 @@ process DETONATE2 {
 }
 
 
-process DETONATE2 {
+process DETONATE11 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -222,7 +222,7 @@ process DETONATE2 {
 }
 
 
-process DETONATE2 {
+process DETONATE12 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
@@ -239,7 +239,7 @@ process DETONATE2 {
 """
 }
 
-process DETONATE2 {
+process DETONATE13 {
   label 'DETONATE'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
