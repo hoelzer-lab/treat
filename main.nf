@@ -90,8 +90,8 @@ include 'modules/detonate' params(output: params.output, dir: params.detonatedir
 HISAT2(assemblies_ch, reads_ch)
 //BUSCO(assemblies_ch, db_busco)
 //TRANSRATE(assemblies_ch)
-RNAQUAST(assemblies_ch, reads_ch, reference_ch, annotation_ch)
-//DETONATE(assemblies_ch)
+// RNAQUAST(assemblies_ch, reads_ch, reference_ch, annotation_ch)
+DETONATE(assemblies_ch)
 
 
 def helpMSG() {
