@@ -154,8 +154,7 @@ process DETONATE8 {
     p = subprocess.run(f"samtools stats {args.outDir}/rsem_expr.transcript.sorted.bam | grep -e '^SN\tmaximum length' | cut -f 3", stdout=subprocess.PIPE, shell=True)
     readLength = str(p.stdout.decode('utf-8'))
     logger.info(f"Read length: {readLength}")
-
-"""
+  """
 }
 
 // FOR EACH ASSEMBLY PROVIDED:
@@ -175,9 +174,8 @@ process DETONATE9 {
   
   shell:
   """
-rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters {args.outDir}/transcript_length_parameters.txt {args.reads} {assembly} {args.outDir}/rsem_eval_{tool} {readLength}
-
-"""
+  rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters {args.outDir}/transcript_length_parameters.txt {args.reads} {assembly} {args.outDir}/rsem_eval_{tool} {readLength}
+  """
 }
 
 process DETONATE10 {
@@ -193,13 +191,12 @@ process DETONATE10 {
   
   shell:
   """
-        output = os.popen(f'ref-eval --scores kc --A-seqs {assembly} --B-seqs {args.outDir}/ta_0.fa --B-expr {args.outDir}/ta_0_expr.isoforms.results --kmerlen {args.readLength} --readlen {args.readLength} --num-reads {numReads}')
+  output = os.popen(f'ref-eval --scores kc --A-seqs {assembly} --B-seqs {args.outDir}/ta_0.fa --B-expr {args.outDir}/ta_0_expr.isoforms.results --kmerlen {args.readLength} --readlen {args.readLength} --num-reads {numReads}')
 
-        kcFile = f'{args.outDir}/kc_{tool}.txt'
-        with open(kcFile, "w+") as writer:
-            writer.write(output.read())
-
-"""
+  kcFile = f'{args.outDir}/kc_{tool}.txt'
+  with open(kcFile, "w+") as writer:
+      writer.write(output.read())
+  """
 }
 
 
@@ -216,9 +213,8 @@ process DETONATE11 {
   
   shell:
   """
-        os.system(f'blat -minIdentity=80 {args.outDir}/ta_0.fa {assembly} {args.outDir}/{tool}_to_ta_0.psl')
-
-"""
+  blat -minIdentity=80 {args.outDir}/ta_0.fa {assembly} {args.outDir}/{tool}_to_ta_0.psl
+  """
 }
 
 
@@ -235,8 +231,8 @@ process DETONATE12 {
   
   shell:
   """
-        os.system(f'blat -minIdentity=80 {assembly} {args.outDir}/ta_0.fa {args.outDir}/ta_0_to_{tool}.psl')
-"""
+  blat -minIdentity=80 {assembly} {args.outDir}/ta_0.fa {args.outDir}/ta_0_to_{tool}.psl
+  """
 }
 
 process DETONATE13 {
@@ -252,12 +248,12 @@ process DETONATE13 {
   
   shell:
   """
-output = os.popen(f'ref-eval --scores contig,nucl --weighted no --A-seqs {assembly} --B-seqs {args.outDir}/ta_0.fa --A-to-B {args.outDir}/{tool}_to_ta_0.psl --B-to-A {args.outDir}/ta_0_to_{tool}.psl --min-frac-identity 0.90')
+  output = os.popen(f'ref-eval --scores contig,nucl --weighted no --A-seqs {assembly} --B-seqs {args.outDir}/ta_0.fa --A-to-B {args.outDir}/{tool}_to_ta_0.psl --B-to-A {args.outDir}/ta_0_to_{tool}.psl --min-frac-identity 0.90')
 
-        contigNuclFile = f'{args.outDir}/contig_nucl_{tool}.txt'
-        with open(contigNuclFile, "w+") as writer:
-            writer.write(output.read())
-            """
+  contigNuclFile = f'{args.outDir}/contig_nucl_{tool}.txt'
+  with open(contigNuclFile, "w+") as writer:
+    writer.write(output.read())
+  """
 }
 
 /* Comments:

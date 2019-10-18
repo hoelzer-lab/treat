@@ -28,27 +28,25 @@ if (params.help) { exit 0, helpMSG() }
 if (params.profile) { exit 1, "--profile is WRONG use -profile" }
 if (params.assemblies == '') {exit 1, "--assemblies is a required parameter"}
 
-// file channels
+// Queue channels (can only be used once)
 assemblies_ch = Channel
-              .fromPath(params.assemblies)
-              .map { file -> tuple(file.simpleName, file) }
+              .fromPath( params.assemblies.tokenize(',') )
+              .flatMap{ files(it) }
+              .map{ file -> tuple(file.simpleName, file) }
+
 
 assemblies_fullname = Channel
               .fromPath(params.assemblies)
               .map { file -> tuple(file.fileName, file) }
 
-reads_ch = Channel
-              .fromPath(params.reads)
-              .map { file -> tuple(file.simpleName, file) }
+// Need to be a value channel, because we want to use this unlimited times.
+reads_ch = Channel.value( tuple( file(params.reads).simpleName, params.reads) )
 
-reference_ch = Channel
-                .fromPath(params.reference)
+reference_ch = Channel.value( file(params.reference) )
 
-transcripts_ch = Channel
-                .fromPath(params.transcripts)
+transcripts_ch = Channel.value( file(params.transcripts) )
 
-annotation_ch = Channel
-                .fromPath(params.annotation)
+annotation_ch = Channel.value( file(params.annotation) )
 
 // illumina reads input & --list support. MIGHT be nicer as initial input read in
 /*
@@ -87,11 +85,11 @@ include 'modules/rnaquast' params(output: params.output, dir: params.rnaquastdir
 include 'modules/detonate' params(output: params.output, dir: params.detonatedir, threads: params.threads)
 
 
-HISAT2(assemblies_ch, reads_ch)
+// HISAT2_SINGLE(assemblies_ch, reads_ch)
 //BUSCO(assemblies_ch, db_busco)
 //TRANSRATE(assemblies_ch)
-// RNAQUAST(assemblies_ch, reads_ch, reference_ch, annotation_ch)
-DETONATE(assemblies_ch)
+// RNAQUAST_SINGLE(assemblies_ch, reads_ch, reference_ch, annotation_ch)
+// DETONATE(assemblies_ch)
 
 
 def helpMSG() {
