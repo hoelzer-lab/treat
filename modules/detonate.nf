@@ -3,259 +3,229 @@
 */
 
 // args.outDir = params.dir
-process DETONATE {
+
+
+process ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
+  file(transcripts)
 
   output:
-  set val(name), file("${name}/assemblies.csv")
-  
-  shell:
-  '''
-  rsem-prepare-reference --bowtie {args.refTranscripts} !{params.dir}/rsem_ref
-  ''' 
-}
+  file('transcript_length_parameters.txt')
 
-process DETONATE2 {
-  label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
-
-  input:
-  set val(name), file(assembly)
-  
-
-  output:
-  set val(name), file("${name}/assemblies.csv")
-  
   shell:
   """
-  rsem-calculate-expression -p !{params.threads} {args.reads} {args.outDir}/rsem_ref {args.outDir}/rsem_expr
+  rsem-eval-estimate-transcript-length-distribution ${transcripts} transcript_length_parameters.txt
   """
 }
 
-process DETONATE3 {
+process RSEM_PREPARE_REFERENCE {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
-  
+  file(transcripts)
 
   output:
-  set val(name), file("${name}/assemblies.csv")
+  file("rsem_ref*")
   
   shell:
   """
-samtools sort {args.outDir}/rsem_expr.transcript.bam {args.outDir}/rsem_expr.transcript.sorted
-  """
+  rsem-prepare-reference --bowtie ${transcripts} rsem_ref
+  """ 
 }
 
-process DETONATE4 {
+process RSEM_CALCULATE_EXPRESSION {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
+  file(assemblies)
+  file(reads)
   
-
   output:
-  set val(name), file("${name}/assemblies.csv")
+    file("rsem_expr*")
   
   shell:
   """
-  ref-eval-estimate-true-assembly --reference {args.outDir}/rsem_ref --expression {args.outDir}/rsem_expr --assembly {args.outDir}/ta --alignment-policy best
+  rsem-calculate-expression -p !{params.threads} ${reads} rsem_ref rsem_expr
   """
 }
 
-process DETONATE5 {
+process SAMTOOLS_SORT {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
+  file(sorted_bam)
   
-
   output:
-  set val(name), file("${name}/assemblies.csv")
+  file("rsem_expr.transcript.sorted.bam")
   
   shell:
   """
-  rsem-prepare-reference --bowtie {args.outDir}/ta_0.fa {args.outDir}/ta_0_ref
+  samtools sort --threads !{params.threads} -o rsem_expr.transcript.sorted.bam rsem_expr.transcript.bam
   """
 }
 
-process DETONATE6 {
+process REF_EVAL_ESTIMATE_TRUE_ASSEMBLY {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
-  
+  file(rsem_ref)
+  file(rsem_expr)
+  file(sorted_bam)
 
   output:
-  set val(name), file("${name}/assemblies.csv")
+  file('ta_0.fa')
   
   shell:
   """
-  rsem-calculate-expression -p !{params.threads} {args.reads} {args.outDir}/ta_0_ref {args.outDir}/ta_0_expr
+  ref-eval-estimate-true-assembly --reference rsem_ref --expression rsem_expr --assembly ta --alignment-policy best
   """
 }
 
+process RSEM_PREPARE_REFERENCE_2 {
+  label 'DETONATE'
+
+  input:
+  file('ta_0.fa')  
+
+  output:
+  file('ta_0_ref*')
+  
+  shell:
+  """
+  rsem-prepare-reference --bowtie ta_0.fa ta_0_ref
+  """
+}
+
+process RSEM_CALCULATE_EXPRESSION_2 {
+  label 'DETONATE'
+
+  input:
+  file('*')
+  file(reads)
+  
+  output:
+  file('ta_0_expr*')
+  
+  shell:
+  """
+  rsem-calculate-expression -p !{params.threads} ${reads} ta_0_ref ta_0_expr
+  """
+}
 
 process DETONATE7 {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
-  
+  file(reads)
+  file(sorted_bam)
 
   output:
-  set val(name), file("${name}/assemblies.csv")
+  stdout()
   
   shell:
   """
     # Estimate the num-reads parameter, this is the number of reads times the read length equals the total number of nucleotides in the read set.
-    output = os.popen("awk '{s++}END{print s/4}' " + args.leftReads)
-    numReads = str(output.read())
+    echo awk '{s++}END{print s/4}' ${reads}
 
     # Get read length and insert size info via the mapped bam file from bowtie
-    p = subprocess.run(f"samtools stats {args.outDir}/rsem_expr.transcript.sorted.bam | grep -e '^SN\tmaximum length' | cut -f 3", stdout=subprocess.PIPE, shell=True)
-    readLength = str(p.stdout.decode('utf-8'))
-    logger.info(f"Read length: {readLength}")
+    #samtools stats rsem_expr.transcript.sorted.bam | grep -e '^SN\tmaximum length' | cut -f 3
   """
 }
 
+// THESE METHODS ARE FOR EACH ASSEMBLY
 
-process DETONATE8 {
+process RSEM_EVAL_CALCULATE_SCORE {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
+  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "rsem_eval_${name}.score"
 
   input:
-  set val(name), file(assembly)
-  
+  file('transcript_length_parameters.txt')
+  file(reads)
+  tuple val(name), file(assembly)
 
+  
   output:
-  set val(name), file("${name}/assemblies.csv")
+  file("rsem_eval*")
   
   shell:
   """
-    # Estimate the num-reads parameter, this is the number of reads times the read length equals the total number of nucleotides in the read set.
-    logger.info('Calculating number of reads.')
-    output = os.popen("awk '{s++}END{print s/4}' " + args.leftReads)
-    numReads = str(output.read())
-    logger.info(f"Number of reads: {numReads}")
-
-    # Get read length and insert size info via the mapped bam file from bowtie
-    logger.info('Calculating read length and insert size.')
-    p = subprocess.run(f"samtools stats {args.outDir}/rsem_expr.transcript.sorted.bam | grep -e '^SN\tmaximum length' | cut -f 3", stdout=subprocess.PIPE, shell=True)
-    readLength = str(p.stdout.decode('utf-8'))
-    logger.info(f"Read length: {readLength}")
+  rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters transcript_length_parameters.txt ${reads} ${assembly} rsem_eval_${name} 100
+  #rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters transcript_length_parameters.txt ${reads} {assembly} {args.outDir}/rsem_eval_{tool} {readLength}
   """
 }
 
-// FOR EACH ASSEMBLY PROVIDED:
-//assembly = abspath(assembly)  # absolute path
-        //tool = basename_without_ext(assembly)  # basename without ext
-
-process DETONATE9 {
+process REF_EVAL_KC {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
+  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "kc_${name}.txt"
 
   input:
-  set val(name), file(assembly)
+  tuple val(name), file(assembly)
+  file('ta_0.fa')
+  file(test)
   
-
   output:
-  set val(name), file("${name}/assemblies.csv")
+  file("kc_${name}.txt")
   
   shell:
   """
-  rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters {args.outDir}/transcript_length_parameters.txt {args.reads} {assembly} {args.outDir}/rsem_eval_{tool} {readLength}
+  ref-eval --scores kc --A-seqs ${assembly} --B-seqs ta_0.fa --B-expr ta_0_expr.isoforms.results --kmerlen 75 --readlen 100 --num-reads 100 | tee kc_${name}.txt
+  #ref-eval --scores kc --A-seqs ${assembly} --B-seqs {args.outDir}/ta_0.fa --B-expr {args.outDir}/ta_0_expr.isoforms.results --kmerlen {args.readLength} --readlen {args.readLength} --num-reads {numReads} | tee kc_${name}.txt
   """
 }
 
-process DETONATE10 {
+process BLAT_A_TO_B {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
-  
+  tuple val(name), file(assembly)
+  file('ta_0.fa')
 
   output:
-  set val(name), file("${name}/assemblies.csv")
+  file("${name}_to_ta_0.psl")
   
   shell:
   """
-  output = os.popen(f'ref-eval --scores kc --A-seqs {assembly} --B-seqs {args.outDir}/ta_0.fa --B-expr {args.outDir}/ta_0_expr.isoforms.results --kmerlen {args.readLength} --readlen {args.readLength} --num-reads {numReads}')
-
-  kcFile = f'{args.outDir}/kc_{tool}.txt'
-  with open(kcFile, "w+") as writer:
-      writer.write(output.read())
+  blat -minIdentity=80 ta_0.fa ${assembly} ${name}_to_ta_0.psl
   """
 }
 
-
-process DETONATE11 {
+process BLAT_B_TO_A {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
-  
+  tuple val(name), file(assembly)
+  file('ta_0.fa')
 
   output:
-  set val(name), file("${name}/assemblies.csv")
+  file("ta_0_to_${name}.psl")
   
   shell:
   """
-  blat -minIdentity=80 {args.outDir}/ta_0.fa {assembly} {args.outDir}/{tool}_to_ta_0.psl
+  blat -minIdentity=80 ${assembly} ta_0.fa ta_0_to_${name}.psl
   """
 }
 
-
-process DETONATE12 {
+process REF_EVAL_CONTIG {
   label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
+  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "contig_nucl_${name}.txt"
 
   input:
-  set val(name), file(assembly)
+  tuple val(name), file(assembly)
+  file('ta_0.fa')
+  file(test)
+  file(test2)
   
 
   output:
-  set val(name), file("${name}/assemblies.csv")
+  file("contig_nucl_${name}.txt")
   
   shell:
   """
-  blat -minIdentity=80 {assembly} {args.outDir}/ta_0.fa {args.outDir}/ta_0_to_{tool}.psl
+  ref-eval --scores contig,nucl --weighted no --A-seqs ${assembly} --B-seqs ta_0.fa --A-to-B ${name}_to_ta_0.psl --B-to-A /ta_0_to_${name}.psl --min-frac-identity 0.90 | tee contig_nucl_${name}.txt
   """
 }
 
-process DETONATE13 {
-  label 'DETONATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
-
-  input:
-  set val(name), file(assembly)
-  
-
-  output:
-  set val(name), file("${name}/assemblies.csv")
-  
-  shell:
-  """
-  output = os.popen(f'ref-eval --scores contig,nucl --weighted no --A-seqs {assembly} --B-seqs {args.outDir}/ta_0.fa --A-to-B {args.outDir}/{tool}_to_ta_0.psl --B-to-A {args.outDir}/ta_0_to_{tool}.psl --min-frac-identity 0.90')
-
-  contigNuclFile = f'{args.outDir}/contig_nucl_{tool}.txt'
-  with open(contigNuclFile, "w+") as writer:
-    writer.write(output.read())
-  """
-}
-
-/* Comments:
-rnaQUAST is still on python2 in the rnaQUAST.py executable the shebang is still which defaults to #!/usr/bin/env python, but should now default to #!/usr/bin/env python2, because python3 is default on new systems...
-*/
+// /* Comments:
+// */
