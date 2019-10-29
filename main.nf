@@ -28,14 +28,27 @@ if (params.help) { exit 0, helpMSG() }
 if (params.profile) { exit 1, "--profile is WRONG use -profile" }
 if (params.assemblies == '') {exit 1, "--assemblies is a required parameter"}
 
-// file channels
+// Queue channels (can only be used once)
 assemblies_ch = Channel
-              .fromPath(params.assemblies)
-              .map { file -> tuple(file.simpleName, file) }
+              .fromPath( params.assemblies.tokenize(',') )
+              .flatMap{ files(it) }
+              .map{ file -> tuple(file.simpleName, file) }
 
-reads_ch = Channel
-              .fromPath(params.reads)
-              .map { file -> tuple(file.simpleName, file) }
+
+assemblies_fullname = Channel
+              .fromPath(params.assemblies)
+              .map { file -> tuple(file.fileName, file) }
+
+// Need to be a value channel, because we want to use this unlimited times.
+reads_ch = Channel.value( tuple( file(params.reads).simpleName, params.reads) )
+
+reads_detonate = Channel.value( file(params.reads) )
+
+reference_ch = Channel.value( file(params.reference) )
+
+transcripts_ch = Channel.value( file(params.transcripts) )
+
+annotation_ch = Channel.value( file(params.annotation) )
 
 // illumina reads input & --list support. MIGHT be nicer as initial input read in
 /*
@@ -60,19 +73,51 @@ It also comes with a "auto-download" if a database is not available. Doing it th
 */
 
 // get BUSCO db
-include 'modules/buscoGetDB' //params(db: params.busco)
-buscoGetDB(params.busco) 
-db_busco = buscoGetDB.out
+// include 'modules/buscoGetDB' //params(db: params.busco)
+// buscoGetDB(params.busco) 
+// db_busco = buscoGetDB.out
 
 
 // MAIN WORKFLOW
 
-include 'modules/hisat2' params(output: params.output, dir: params.mappingdir, threads: params.threads)
-include 'modules/busco' params(output: params.output, dir: params.buscodir, threads: params.threads)
+include './modules/hisat2' params(output: params.output, dir: params.mappingdir, threads: params.threads)
+include './modules/busco' params(output: params.output, dir: params.buscodir, threads: params.threads)
+include './modules/transrate' params(output: params.output, dir: params.transratedir, threads: params.threads)
+include './modules/rnaquast' params(output: params.output, dir: params.rnaquastdir, threads: params.threads, reference: params.reference, annotation: params.annotation)
+include './modules/detonate' params(output: params.output, dir: params.detonatedir, threads: params.threads, reference: params.reference, transcripts: params.transcripts)
 
-HISAT2(assemblies_ch, reads_ch)
-BUSCO(assemblies_ch, db_busco)
 
+// HISAT2_SINGLE(assemblies_ch, reads_ch)
+// BUSCO(assemblies_ch, db_busco)
+// TRANSRATE(assemblies_ch)
+// RNAQUAST_SINGLE(assemblies_ch, reads_ch, reference_ch, annotation_ch)
+
+// DETONATE(assemblies_ch, transcripts_ch)
+workflow {
+    main:
+        DETONATE()
+}
+workflow DETONATE {
+
+  main:
+    // performed once   
+    ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS(transcripts_ch)
+    RSEM_PREPARE_REFERENCE(transcripts_ch)
+    RSEM_CALCULATE_EXPRESSION(RSEM_PREPARE_REFERENCE.out, reads_detonate)
+    SAMTOOLS_SORT(RSEM_CALCULATE_EXPRESSION.out.filter{ "~/*.bam/" })
+    REF_EVAL_ESTIMATE_TRUE_ASSEMBLY(RSEM_PREPARE_REFERENCE.out, RSEM_CALCULATE_EXPRESSION.out, SAMTOOLS_SORT.out)
+    RSEM_PREPARE_REFERENCE_2(REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
+    RSEM_CALCULATE_EXPRESSION_2(RSEM_PREPARE_REFERENCE_2.out, reads_detonate)
+    DETONATE7(reads_detonate, SAMTOOLS_SORT.out)
+    // performed for each assembly
+    RSEM_EVAL_CALCULATE_SCORE(ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS.out, reads_detonate, assemblies_ch)
+    REF_EVAL_KC(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, RSEM_CALCULATE_EXPRESSION_2.out)
+    BLAT_A_TO_B(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
+    BLAT_B_TO_A(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
+    REF_EVAL_CONTIG(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, BLAT_A_TO_B.out, BLAT_B_TO_A.out)
+  emit:
+    RSEM_CALCULATE_EXPRESSION.out
+}
 
 def helpMSG() {
     c_green = "\033[0;32m";

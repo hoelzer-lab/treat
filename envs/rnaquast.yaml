@@ -1,0 +1,7 @@
+name: RNAQUAST
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=2.7
+  - rnaquast=1.5.1
