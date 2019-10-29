@@ -4,3 +4,4 @@ channels:
   - conda-forge
 dependencies:
   - busco=3.0.2
+  - sed=4.7
