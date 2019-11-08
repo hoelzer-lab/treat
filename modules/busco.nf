@@ -1,17 +1,27 @@
 /*
 * Benchmark universal orthologous groups w/ BUSCO
 */ 
-process BUSCO {
+
+// get BUSCO db
+include './buscoGetDB' 
+
+workflow BUSCO{
+    main:
+        get_database(params.busco)
+        run_busco(params.assemblies, get_database.out)    
+}
+
+process run_busco {
   label 'BUSCO'
   publishDir "${params.output}/${params.dir}/", mode: 'copy', pattern: "${name}_busco_summary.txt"
   publishDir "${params.output}/${params.dir}/", mode: 'copy', pattern: "${name}_busco_figure.pdf"
 
   input:
-  set val(name), file(assembly)
+  tuple val(name), file(assembly)
   file(db)
 
   output:
-  set val(name), file("${name}_busco_summary.txt"), file ("${name}_busco_figure.pdf")
+  tuple val(name), file("${name}_busco_summary.txt"), file ("${name}_busco_figure.pdf")
 
   script:
   """

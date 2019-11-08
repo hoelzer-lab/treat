@@ -1,13 +1,22 @@
 /*
 * Mapping w/ HISAT2 and preprocessing w/ samtools
 */
+
+workflow HISAT2{
+    main:
+      // if( params.paired )
+      //   HISAT2_PAIRED
+      // else
+        HISAT2_SINGLE(params.assemblies, params.reads)    
+}
+
 process HISAT2_SINGLE {
   label 'HISAT2'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}.sorted.bam"
 
   input:
-  set val(name), file(assembly)
-  set val(read_id), file(reads)
+  tuple val(name), file(assembly)
+  tuple val(read_id), file(reads)
 
   output:
   set val(name), file("${name}.sorted.bam")
@@ -24,8 +33,8 @@ process HISAT2_PAIRED {
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}.sorted.bam"
 
   input:
-  set val(name), file(assembly)
-  set val(read_id), file(reads)
+  tuple val(name), file(assembly)
+  tuple val(read_id), file(reads)
 
   output:
   set val(name), file("${name}.sorted.bam")
