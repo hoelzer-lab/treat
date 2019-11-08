@@ -51,73 +51,44 @@ transcripts_ch = Channel.value( file(params.transcripts) )
 annotation_ch = Channel.value( file(params.annotation) )
 
 // illumina reads input & --list support. MIGHT be nicer as initial input read in
-/*
-if (params.illumina && params.list) { illumina_input_ch = Channel
-    .fromPath( params.illumina, checkIfExists: true )
-    .splitCsv()
-    .map { row -> ["${row[0]}", [file("${row[1]}"), file("${row[2]}")]] }
-    .view() }
-else if (params.illumina) { illumina_input_ch = Channel
-    .fromFilePairs( params.illumina , checkIfExists: true )
-    .view() }
-*/
 
-// DATABASES
+// if (params.csv) { illumina_input_ch = Channel
+//     .fromPath( params.csv, checkIfExists: true )
+//     .splitCsv()
+//     .map { row -> ["${row[0]}", "${row[1]}", "${row[2]}"] }
+//     .branch{
+//       paired: it[2] != ""
+//       single: it[2] == ""
+//     }
+//     .set{result}
+// }
 
-/* Comment section:
-The Database Section is designed to "auto-get" pre prepared databases.
-It is written for local use and cloud use.
-It also comes with a "auto-download" if a database is not available. Doing it the following way:
-1. take userinput DB 2. add a cloud preload DB if cloud profile 3. check if the preload file exists (local or cloud)
-4. if nothing is true -> download the DB and store it in the "preload" section (either cloud or local for step 3.)
-*/
 
-// get BUSCO db
-// include 'modules/buscoGetDB' //params(db: params.busco)
-// buscoGetDB(params.busco) 
-// db_busco = buscoGetDB.out
+// illumina_input_ch.paired.subscribe{println "$it"}
+result.paired.view{"$it"}
+result.single.view{"$it"}
 
 
 // MAIN WORKFLOW
 
-include './modules/hisat2' params(output: params.output, dir: params.mappingdir, threads: params.threads)
-include './modules/busco' params(output: params.output, dir: params.buscodir, threads: params.threads)
+include './modules/hisat2' params(output: params.output, dir: params.mappingdir, threads: params.threads, assemblies: assemblies_ch, reads: reads_ch)
+include './modules/busco' params(output: params.output, dir: params.buscodir, threads: params.threads, assemblies: assemblies_ch, busco: params.busco)
 include './modules/transrate' params(output: params.output, dir: params.transratedir, threads: params.threads)
-include './modules/rnaquast' params(output: params.output, dir: params.rnaquastdir, threads: params.threads, reference: params.reference, annotation: params.annotation)
-include './modules/detonate' params(output: params.output, dir: params.detonatedir, threads: params.threads, reference: params.reference, transcripts: params.transcripts)
+include './modules/rnaquast' params(output: params.output, dir: params.rnaquastdir, threads: params.threads, genome: reference_ch, annotation: annotation_ch, assemblies: assemblies_ch, reads: reads_ch)
+include './modules/detonate' params(output: params.output, dir: params.detonatedir, threads: params.threads, reference: params.reference, transcripts_ch: params.transcripts)
 
 
-// HISAT2_SINGLE(assemblies_ch, reads_ch)
-// BUSCO(assemblies_ch, db_busco)
 // TRANSRATE(assemblies_ch)
-// RNAQUAST_SINGLE(assemblies_ch, reads_ch, reference_ch, annotation_ch)
 
-// DETONATE(assemblies_ch, transcripts_ch)
 workflow {
     main:
-        DETONATE()
-}
-workflow DETONATE {
+        HISAT2()
+        BUSCO()
+        RNAQUAST()
+        // DETONATE()
 
-  main:
-    // performed once   
-    ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS(transcripts_ch)
-    RSEM_PREPARE_REFERENCE(transcripts_ch)
-    RSEM_CALCULATE_EXPRESSION(RSEM_PREPARE_REFERENCE.out, reads_detonate)
-    SAMTOOLS_SORT(RSEM_CALCULATE_EXPRESSION.out.filter{ "~/*.bam/" })
-    REF_EVAL_ESTIMATE_TRUE_ASSEMBLY(RSEM_PREPARE_REFERENCE.out, RSEM_CALCULATE_EXPRESSION.out, SAMTOOLS_SORT.out)
-    RSEM_PREPARE_REFERENCE_2(REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
-    RSEM_CALCULATE_EXPRESSION_2(RSEM_PREPARE_REFERENCE_2.out, reads_detonate)
-    DETONATE7(reads_detonate, SAMTOOLS_SORT.out)
-    // performed for each assembly
-    RSEM_EVAL_CALCULATE_SCORE(ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS.out, reads_detonate, assemblies_ch)
-    REF_EVAL_KC(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, RSEM_CALCULATE_EXPRESSION_2.out)
-    BLAT_A_TO_B(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
-    BLAT_B_TO_A(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
-    REF_EVAL_CONTIG(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, BLAT_A_TO_B.out, BLAT_B_TO_A.out)
-  emit:
-    RSEM_CALCULATE_EXPRESSION.out
 }
+
 
 def helpMSG() {
     c_green = "\033[0;32m";
@@ -139,6 +110,9 @@ def helpMSG() {
     ${c_green}--reference${c_reset}     reference genome
     ${c_green}--annotation${c_reset}    annotation file in gtf format corresponding to the reference file
     ${c_green}--busco${c_reset}         the database used with BUSCO, see https://busco.ezlab.org/v2/frame_wget.html for a full list of available data sets and select one [default: $params.busco]
+
+    ${c_green}--csv${c_reset}     csv input
+
 
     ${c_yellow}Options${c_reset}
     --threads                max cores for local use [default: $params.threads]

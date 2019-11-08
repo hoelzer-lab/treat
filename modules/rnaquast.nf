@@ -1,18 +1,26 @@
 /*
 * RNAQUAST
 */
+
+workflow RNAQUAST{
+    main:
+        RNAQUAST_SINGLE(params.assemblies, params.reads, params.genome, params.annotation)
+        // RNAQUAST_SINGLE(assemblies_ch, reads_ch, reference_ch, annotation_ch)
+
+}
+
 process RNAQUAST_SINGLE {
   label 'RNAQUAST'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/short_report.tsv"
 
   input:
-  set val(name), file(assembly)
-  set val(read_id), file(reads)
+  tuple val(name), file(assembly)
+  tuple val(read_id), file(reads)
   file(reference)
   file(annotation)
 
   output:
-  set val(name), file("${name}/short_report.tsv")
+  tuple val(name), file("${name}/short_report.tsv")
   
   shell:
   """
@@ -32,13 +40,13 @@ process RNAQUAST_PAIRED {
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/short_report.tsv"
 
   input:
-  set val(name), file(assembly)
-  set val(read_id), file(reads)
+  tuple val(name), file(assembly)
+  tuple val(read_id), file(reads)
   file(reference)
   file(annotation)
 
   output:
-  set val(name), file("${name}/short_report.tsv")
+  tuple val(name), file("${name}/short_report.tsv")
   
   shell:
   """
