@@ -8,32 +8,53 @@ include './buscoGetDB'
 workflow BUSCO{
     main:
         get_database(params.busco)
-        run_busco(params.assemblies, get_database.out)    
+        run_busco(params.assemblies, get_database.out)
+        plot_busco(run_busco.out.collect())
+    emit:
+        run_busco.out
 }
 
 process run_busco {
   label 'BUSCO'
-  publishDir "${params.output}/${params.dir}/", mode: 'copy', pattern: "${name}_busco_summary.txt"
-  publishDir "${params.output}/${params.dir}/", mode: 'copy', pattern: "${name}_busco_figure.pdf"
+  publishDir "${params.output}/${params.dir}/", mode: 'copy', pattern: "short_summary_${name}.txt"
+  // publishDir "${params.output}/${params.dir}/", mode: 'copy', pattern: "${name}_busco_figure.pdf"
 
   input:
   tuple val(name), file(assembly)
   file(db)
 
   output:
-  tuple val(name), file("${name}_busco_summary.txt"), file ("${name}_busco_figure.pdf")
+  file("short_summary_${name}.txt")
+
+  shell:
+  """
+  export AUGUSTUS_CONFIG_PATH="/opt/conda/config/"
+  # run BUSCO
+  run_BUSCO.py -i ${assembly} -o ${name} -l ${db} -m tran -c ${params.threads} -t ./ -z
+  cp run_${name}/short_summary_${name}.txt short_summary_${name}.txt
+  """
+}
+
+process plot_busco {
+  label 'BUSCO'
+  publishDir "${params.output}/${params.dir}/", mode: 'copy', pattern: "busco_figure.pdf"
+
+  input:
+  file('*')
+
+  output:
+  file ("busco_figure.pdf")
 
   script:
   """
   export AUGUSTUS_CONFIG_PATH="/opt/conda/config/"
-  # run BUSCO
-  run_BUSCO.py -i ${assembly} -o results -l ${db} -m tran -c ${params.threads} -t ./ -z
-  cp run_results/short_summary_results.txt ${name}_busco_summary.txt
+  mkdir run_results
+  cp *.txt run_results/
   # generate Plot and rehack Rscript
   generate_plot.py -wd run_results/
   sed -i 's/busco_figure.png/busco_figure.pdf/g' run_results/busco_figure.R
   Rscript run_results/busco_figure.R
-  cp run_results/busco_figure.pdf  ${name}_busco_figure.pdf
+  cp run_results/busco_figure.pdf busco_figure.pdf
   """
 }
 
