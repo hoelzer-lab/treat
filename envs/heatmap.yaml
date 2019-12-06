@@ -1,0 +1,9 @@
+name: HEATMAP
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - seaborn
+  - matplotlib
+  - numpy
+  - pandas

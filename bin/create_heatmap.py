@@ -70,7 +70,7 @@ class MetricMuncher:
 	def read_mapping(self, mapping_file):
 		assembly_name = mapping_file.replace('_mapping_stats.txt', '')
 		with open(mapping_file, 'r') as reader:
-			percentage = reader.readline().rstrip('\n')
+			percentage = float(reader.readline().rstrip('\n'))
 			self.mapping[assembly_name] = {'Remapping rate': percentage}
 
 	def create_all_metrics(self):
@@ -97,14 +97,16 @@ class MetricMuncher:
 								'mean_orf_percent', 'score', 'p_bases_uncovered',
 								'kmer_compression_score', 'Score', 'unweighted_nucl_F1', 'unweighted_contig_F1',
 								'Complete and single-copy BUSCOs', 'Complete and duplicated BUSCOs', 'Fragmented BUSCOs', 'Missing BUSCOs', 
-								'Ex90N50', 
-								'mapping_rate_per_base']
+
+								'Remapping rate']
+								#								'Ex90N50', 
 			self.high_values = ['Database coverage', '95%-assembled isoforms', 
 							'mean_orf_percent', 'score',
 							'Score', 'kmer_compression_score', 'unweighted_nucl_F1', 'unweighted_contig_F1', 
 							'Complete and single-copy BUSCOs',
-							'Ex90N50', 
-							'mapping_rate_per_base']
+
+							'Remapping rate']
+							#							'Ex90N50', 
 			self.low_values = ['Duplication ratio', 'Misassemblies',
 							'p_bases_uncovered',
 							'Missing BUSCOs', 'Fragmented BUSCOs', 'Complete and duplicated BUSCOs']
@@ -112,13 +114,15 @@ class MetricMuncher:
 			metrics_to_extract = ['Database coverage', 'Duplication ratio', '95%-assembled isoforms', 'Misassemblies', 
 								'kmer_compression_score', 'Score', 'unweighted_nucl_F1', 'unweighted_contig_F1',
 								'Complete and single-copy BUSCOs', 'Complete and duplicated BUSCOs', 'Fragmented BUSCOs', 'Missing BUSCOs', 
-								'Ex90N50', 
-								'mapping_rate_per_base']
+
+								'Remapping rate']
+								#								'Ex90N50', 
 			self.high_values = ['Database coverage', '95%-assembled isoforms', 
 							'Score', 'kmer_compression_score', 'unweighted_nucl_F1', 'unweighted_contig_F1', 
 							'Complete and single-copy BUSCOs',
-							'Ex90N50', 
-							'mapping_rate_per_base']
+
+							'Remapping rate']
+							#							'Ex90N50', 
 			self.low_values = ['Duplication ratio', 'Misassemblies',
 							'Missing BUSCOs', 'Fragmented BUSCOs', 'Complete and duplicated BUSCOs']
 		assert len(self.high_values) + len(self.low_values) == len(metrics_to_extract), 'Missing metrics in high/low arrays.'
@@ -154,8 +158,9 @@ class MetricMuncher:
 								'Mean ORF (%)', 'Assembly score', 'Uncovered bases (%)',
 								'KC score', 'RSEM EVAL', 'Nucleotide F1', 'Contig F1',
 								'BUSCOs (CS)', 'BUSCOs (CD)', 'BUSCOs (F)', 'BUSCOs (M)', 
-								'Ex90N50', 
+
 								'Remapping rate'])
+								#								'Ex90N50', 
 		else:
 			self.normalized_selected_metrics.rename(index={
 					'Database coverage': 'Database\ncoverage',
@@ -174,8 +179,9 @@ class MetricMuncher:
 			self.normalized_selected_metrics = self.normalized_selected_metrics.reindex(['Database\ncoverage', 'Duplication ratio', '95 %-assembled\nisoforms', 'Misassemblies',
 							'KC score', 'RSEM EVAL', 'Nucleotide F1', 'Contig F1',
 							'BUSCOs (CS)', 'BUSCOs (CD)', 'BUSCOs (F)', 'BUSCOs (M)', 
-							'Ex90N50', 
+
 							'Remapping rate'])
+							#							'Ex90N50', 
 
 	def save_selected_normalized_metrics(self, file_name, sep='\t'):
 		self.normalized_selected_metrics.to_csv(file_name, sep=sep)
@@ -255,22 +261,12 @@ def normalize(array, reverse=False):
 	
 	
 
-# print(sorted(glob.glob('*mapping_stats.txt')))
+
 mapping_stats = sorted(glob.glob('*_mapping_stats.txt'))
-
-# print(sorted(glob.glob('short_summary_*')))
 busco_stats = sorted(glob.glob('short_summary_*'))
-
-# print(sorted(glob.glob('short_report.tsv')))
 rnaquast_stats = glob.glob('short_report.tsv')[0]
-
-# print(sorted(glob.glob('contig_nucl*')))
 contig_stats = sorted(glob.glob('contig_nucl*'))
-
-# print(sorted(glob.glob('kc_*')))
 kc_stats = sorted(glob.glob('kc_*'))
-
-# print(sorted(glob.glob('*.score')))
 rsem_stats = sorted(glob.glob('*.score'))
 
 
@@ -283,9 +279,11 @@ for stats in busco_stats:
 for contig, kc, rsem in zip(contig_stats, kc_stats, rsem_stats):
 	mm.read_detonate(kc, contig, rsem)
 
+
 mm.create_all_metrics()
-mm.save_all_metrics('all_metrics.csv')
 print(mm.metrics)
+mm.save_all_metrics('all_metrics.csv')
+
 
 mm.select_metrics()
 mm.save_selected_metrics('selected_metrics.csv')
@@ -298,3 +296,4 @@ mm.save_selected_normalized_metrics('selected_normalized_metrics.csv')
 
 mm.calculate_column_sum()
 mm.save_heatmap('heatmap.svg')
+

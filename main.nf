@@ -99,12 +99,12 @@ include './modules/extract_metrics' params(assemblies: assemblies_simplename, ou
 
 workflow {
     main:
-        //HISAT2()
-        //BUSCO()
-        //RNAQUAST()
-        //DETONATE()
-        Ex90N50()
-        //HEATMAP(HISAT2.out.collect(), BUSCO.out.collect(), RNAQUAST.out, DETONATE.out.kc.collect(), DETONATE.out.contig.collect(), DETONATE.out.rsem.collect())
+        HISAT2()
+        BUSCO()
+        RNAQUAST()
+        DETONATE()
+        //Ex90N50()
+        HEATMAP(HISAT2.out.collect(), BUSCO.out.collect(), RNAQUAST.out, DETONATE.out.kc.collect(), DETONATE.out.contig.collect(), DETONATE.out.rsem.collect())
 }
 
 
