@@ -1,0 +1,8 @@
+name: ex90n50
+channels:
+ - bioconda
+ - conda-forge
+dependencies:
+ - trinity=2.8.5
+ - openjdk=8.0.192
+ - salmon=0.15.0
