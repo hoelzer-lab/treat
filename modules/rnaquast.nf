@@ -4,33 +4,35 @@
 
 workflow RNAQUAST{
     main:
-        RNAQUAST_SINGLE(params.assemblies, params.reads, params.genome, params.annotation)
+        RNAQUAST_SINGLE(params.assemblies.collect(), params.labels, params.reads, params.genome, params.annotation)
         // RNAQUAST_SINGLE(assemblies_ch, reads_ch, reference_ch, annotation_ch)
-
+    emit:
+      RNAQUAST_SINGLE.out
 }
 
 process RNAQUAST_SINGLE {
   label 'RNAQUAST'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/short_report.tsv"
+  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "short_report.tsv"
 
   input:
-  tuple val(name), file(assembly)
+  file(assemblies)
+  val(names)
   tuple val(read_id), file(reads)
   file(reference)
   file(annotation)
 
   output:
-  tuple val(name), file("${name}/short_report.tsv")
+  file("short_report.tsv")
   
   shell:
   """
   rnaQUAST.py --single_reads ${reads} \
             --reference ${reference} \
 						--gtf ${annotation} \
-						--output_dir ${name} \
+						--output_dir . \
 						--threads !{params.threads} \
-						--transcripts ${assembly} \
-						-l !{name} \
+						--transcripts ${assemblies} \
+						--labels ${names} \
             --prokaryote
   """ 
 }
