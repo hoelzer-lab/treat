@@ -97,14 +97,12 @@ class MetricMuncher:
 								'mean_orf_percent', 'score', 'p_bases_uncovered',
 								'kmer_compression_score', 'Score', 'unweighted_nucl_F1', 'unweighted_contig_F1',
 								'Complete and single-copy BUSCOs', 'Complete and duplicated BUSCOs', 'Fragmented BUSCOs', 'Missing BUSCOs', 
-
 								'Remapping rate']
 								#								'Ex90N50', 
 			self.high_values = ['Database coverage', '95%-assembled isoforms', 
 							'mean_orf_percent', 'score',
 							'Score', 'kmer_compression_score', 'unweighted_nucl_F1', 'unweighted_contig_F1', 
 							'Complete and single-copy BUSCOs',
-
 							'Remapping rate']
 							#							'Ex90N50', 
 			self.low_values = ['Duplication ratio', 'Misassemblies',
@@ -114,13 +112,11 @@ class MetricMuncher:
 			metrics_to_extract = ['Database coverage', 'Duplication ratio', '95%-assembled isoforms', 'Misassemblies', 
 								'kmer_compression_score', 'Score', 'unweighted_nucl_F1', 'unweighted_contig_F1',
 								'Complete and single-copy BUSCOs', 'Complete and duplicated BUSCOs', 'Fragmented BUSCOs', 'Missing BUSCOs', 
-
 								'Remapping rate']
 								#								'Ex90N50', 
 			self.high_values = ['Database coverage', '95%-assembled isoforms', 
 							'Score', 'kmer_compression_score', 'unweighted_nucl_F1', 'unweighted_contig_F1', 
 							'Complete and single-copy BUSCOs',
-
 							'Remapping rate']
 							#							'Ex90N50', 
 			self.low_values = ['Duplication ratio', 'Misassemblies',
@@ -158,7 +154,6 @@ class MetricMuncher:
 								'Mean ORF (%)', 'Assembly score', 'Uncovered bases (%)',
 								'KC score', 'RSEM EVAL', 'Nucleotide F1', 'Contig F1',
 								'BUSCOs (CS)', 'BUSCOs (CD)', 'BUSCOs (F)', 'BUSCOs (M)', 
-
 								'Remapping rate'])
 								#								'Ex90N50', 
 		else:
@@ -179,7 +174,6 @@ class MetricMuncher:
 			self.normalized_selected_metrics = self.normalized_selected_metrics.reindex(['Database\ncoverage', 'Duplication ratio', '95 %-assembled\nisoforms', 'Misassemblies',
 							'KC score', 'RSEM EVAL', 'Nucleotide F1', 'Contig F1',
 							'BUSCOs (CS)', 'BUSCOs (CD)', 'BUSCOs (F)', 'BUSCOs (M)', 
-
 							'Remapping rate'])
 							#							'Ex90N50', 
 
