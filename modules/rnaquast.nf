@@ -17,7 +17,7 @@ process RNAQUAST_SINGLE {
   input:
   file(assemblies)
   val(names)
-  tuple val(read_id), file(reads)
+  file(reads)
   file(reference)
   file(annotation)
 
@@ -33,6 +33,7 @@ process RNAQUAST_SINGLE {
 						--threads !{params.threads} \
 						--transcripts ${assemblies} \
 						--labels ${names} \
+            --no_plots \
             --prokaryote
   """ 
 }
