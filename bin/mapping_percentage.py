@@ -16,7 +16,7 @@ def read_mapping_info(flagstats_file):
         for line in reader:
             if 'total' in line:
                 flagstat_info['total'] = int(line.split(' ')[0])
-            if 'mapped' in line:
+            if 'mapped (' in line:
                 flagstat_info['mapped'] = int(line.split(' ')[0])
     return flagstat_info
 

@@ -22,7 +22,7 @@ process HISAT2_SINGLE {
 
   input:
   tuple val(name), file(assembly)
-  tuple val(read_id), file(reads)
+  file(reads)
 
   output:
   tuple val(name), file("${name}.sorted.bam")
@@ -60,7 +60,7 @@ process CALCULATE_MAPPED_READS {
   mapping_percentage.py --in ${mapping_stats} --out ${name}_mapping_stats.txt
   """
 }
-
+/*
 process HISAT2_PAIRED {
   label 'HISAT2'
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}.sorted.bam"
@@ -78,6 +78,7 @@ process HISAT2_PAIRED {
   hisat2 -x !{name} -U !{reads} -p !{params.threads} | samtools view -bS | samtools sort -T tmp --threads !{params.threads} > !{name}.sorted.bam
   ''' 
 }
+*/
 
 /* Comments:
 */
