@@ -1,62 +1,73 @@
 workflow Ex90N50{
     main:
-        ALIGN_AND_ESTIMATE_ABUNDANCE(params.assemblies, params.reads)
-        ABUNDANCE_ESTIMATES_TO_MATRIX(ALIGN_AND_ESTIMATE_ABUNDANCE.out)
+        SALMON_INDEX(params.assemblies)
+        SALMON_QUASIMAPPING(params.reads, SALMON_INDEX.out)
+        ABUNDANCE_ESTIMATES_TO_MATRIX(SALMON_QUASIMAPPING.out)
+        CONTIG_EXN50_STATISTIC(params.assemblies, ABUNDANCE_ESTIMATES_TO_MATRIX.out)
+        //ALIGN_AND_ESTIMATE_ABUNDANCE(params.assemblies, params.reads)
+        //ABUNDANCE_ESTIMATES_TO_MATRIX(ALIGN_AND_ESTIMATE_ABUNDANCE.out)
         //CONTIG_EXN50_STATISTIC()
 }
 
-process ALIGN_AND_ESTIMATE_ABUNDANCE {
+process SALMON_INDEX {
   label 'Ex90N50'
 
   input:
   tuple val(name), file(assembly)
-  file(reads)
 
   output:
   file('*')
-  
-  shell:
-  """
-  align_and_estimate_abundance.pl --thread_count !{params.threads} --transcripts ${assembly} --seqType fq --single ${reads} --est_method salmon --trinity_mode --prep_reference --output_dir salmon_${name}
-  """ 
-  }
 
+  shell:
+    """
+    salmon index --keepDuplicates -t ${assembly} -i salmon -p !{params.threads}
+    """
+}
+
+process SALMON_QUASIMAPPING {
+  label 'Ex90N50'
+
+  input:
+  file(reads)
+  file('*')
+
+  output:
+  file('*')
+
+  shell:
+    """
+    salmon quant -l A -i salmon -r ${reads} -o salmon_quant -p !{params.threads}
+    """
+}
 
 process ABUNDANCE_ESTIMATES_TO_MATRIX {
   label 'Ex90N50'
 
   input:
-  file ('*')
+  file('*')
 
-  
+  output:
+  file('*')
+
+  shell:
   """
-  abundance_estimates_to_matrix.pl --est_method salmon --gene_trans_map none --out_prefix salmon --name_sample_by_basedir salmon/quant.sf
+  abundance_estimates_to_matrix.pl --est_method salmon --gene_trans_map none --out_prefix salmon_quant --name_sample_by_basedir salmon_quant/quant.sf
   """ 
   }
 
 process CONTIG_EXN50_STATISTIC {
+  label 'Ex90N50'
+  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "ExN50.stats"
 
   input:
+  tuple val(name), file(assembly)
+  file('*')
 
   output:
+  file('ExN50.stats')
   
+  shell:
   """
-  contig_ExN50_statistic.pl salmon.isoform.TPM.not_cross_norm {input_fasta} | tee ExN50.stats
+  contig_ExN50_statistic.pl salmon_quant.isoform.TPM.not_cross_norm ${assembly} > ExN50.stats
   """ 
   }
-
-
-//*Paired end rule
-process ALIGN_AND_ESTIMATE_PAIRED {
-
-  input:
-
-  output:
-  
-  """
-  abundance_dir = f'salmon'
-  align_and_estimate_abundance.pl --thread_count {threads} --transcripts {input_fasta} --seqType fq --left {leftReads} --right {rightReads} --est_method salmon --trinity_mode --output_dir {abundance_dir}
-  """ 
-  }
-//
-    
