@@ -3,7 +3,7 @@ workflow EX90N50{
         SALMON_INDEX(params.assemblies)
         SALMON_QUASIMAPPING(params.reads, SALMON_INDEX.out)
         ABUNDANCE_ESTIMATES_TO_MATRIX(SALMON_QUASIMAPPING.out)
-        CONTIG_EXN50_STATISTIC(params.assemblies, ABUNDANCE_ESTIMATES_TO_MATRIX.out)
+        CONTIG_EXN50_STATISTIC(ABUNDANCE_ESTIMATES_TO_MATRIX.out)
     emit:
       CONTIG_EXN50_STATISTIC.out
 }
@@ -16,7 +16,7 @@ process SALMON_INDEX {
 
   output:
   file("salmon_${name}/")
-  val(name)
+  tuple val(name), file(assembly)
 
   shell:
     """
@@ -30,11 +30,11 @@ process SALMON_QUASIMAPPING {
   input:
   file(reads)
   file('*')
-  val(name)
+  tuple val(name), file(assembly)
 
   output:
   file('*')
-  val(name)
+  tuple val(name), file(assembly)
 
   shell:
     """
@@ -47,11 +47,11 @@ process ABUNDANCE_ESTIMATES_TO_MATRIX {
 
   input:
   file('*')
-  val(name)
+  tuple val(name), file(assembly)
 
   output:
   file('*')
-  val(name)
+  tuple val(name), file(assembly)
 
   shell:
   """
@@ -64,9 +64,8 @@ process CONTIG_EXN50_STATISTIC {
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}_ExN50.stats"
 
   input:
-  tuple val(name), file(assembly)
   file('*')
-  val(name)
+  tuple val(name), file(assembly)
 
   output:
   file("${name}_ExN50.stats")
