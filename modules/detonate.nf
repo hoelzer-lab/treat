@@ -20,10 +20,8 @@ workflow DETONATE {
     // performed for each assembly
     RSEM_EVAL_CALCULATE_SCORE(ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS.out, params.reads, params.assemblies, READ_LENGTH.out)
     REF_EVAL_KC(params.assemblies, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, RSEM_CALCULATE_EXPRESSION_2.out, NUMBER_OF_READS.out, READ_LENGTH.out)
-    //BLAT_A_TO_B(params.assemblies, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
-    //BLAT_B_TO_A(params.assemblies, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
     BLAT(params.assemblies, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
-    REF_EVAL_CONTIG(params.assemblies, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, BLAT.out)
+    REF_EVAL_CONTIG(BLAT.out)
   emit:
     kc = REF_EVAL_KC.out
     contig = REF_EVAL_CONTIG.out
@@ -219,10 +217,12 @@ process BLAT {
 
   input:
   tuple val(name), file(assembly)
-  file('*')
+  file('ta_0.fa')
 
   output:
   tuple file("ta_0_to_${name}.psl"), file("${name}_to_ta_0.psl")
+  tuple val(name), file(assembly)
+  file('ta_0.fa')
   
   shell:
   """
@@ -236,18 +236,20 @@ process REF_EVAL_CONTIG {
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "contig_nucl_${name}.txt"
 
   input:
+  tuple file(ta_to_assembly), file(assembly_to_ta)
   tuple val(name), file(assembly)
-  file('*')
-  file("*")
+  file('ta_0.fa')
+
 
   output:
   file("contig_nucl_${name}.txt")
   
   shell:
   """
-  ref-eval --scores contig,nucl --weighted no --A-seqs ${assembly} --B-seqs ta_0.fa --A-to-B ${name}_to_ta_0.psl --B-to-A ta_0_to_${name}.psl --min-frac-identity 0.90 > contig_nucl_${name}.txt
+  ref-eval --scores contig,nucl --weighted no --A-seqs ${assembly} --B-seqs ta_0.fa --A-to-B ${assembly_to_ta} --B-to-A ${ta_to_assembly} --min-frac-identity 0.90 > contig_nucl_${name}.txt
   """
+
 }
 
-// /* Comments:
-// */
+ /* Comments:
+ */
