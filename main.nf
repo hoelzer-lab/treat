@@ -35,10 +35,6 @@ assemblies_ch = Channel
               .map{ file -> tuple(file.simpleName, file) }
 
 
-assemblies_fullname = Channel
-              .fromPath(params.assemblies)
-              .map { file -> tuple(file.fileName, file) }
-
 assemblies_simplename = Channel
               .fromPath(params.assemblies.tokenize(','))
               .map { file -> file.simpleName }
@@ -89,7 +85,6 @@ include './modules/transrate' params(output: params.output, dir: params.transrat
 include './modules/rnaquast' params(output: params.output, dir: params.rnaquastdir, threads: params.threads, genome: reference_ch, annotation: annotation_ch, assemblies: assemblies_rnaquast, reads: reads_ch, labels: assemblies_rnaquast_labels)
 include './modules/detonate' params(output: params.output, dir: params.detonatedir, threads: params.threads, reference: params.reference, transcripts: transcripts_ch, reads: reads_ch, assemblies: assemblies_ch)
 include './modules/ex90n50' params(output: params.output, dir: params.ex90n50dir, threads: params.threads, reads: reads_ch, assemblies: assemblies_ch)
-
 include './modules/extract_metrics' params(assemblies: assemblies_simplename, output: params.output, detonate_dir: params.detonatedir)
 
 
@@ -101,8 +96,8 @@ workflow {
         BUSCO()
         RNAQUAST()
         DETONATE()
-        //Ex90N50()
-        HEATMAP(HISAT2.out.collect(), BUSCO.out.collect(), RNAQUAST.out, DETONATE.out.kc.collect(), DETONATE.out.contig.collect(), DETONATE.out.rsem.collect())
+        EX90N50()
+        HEATMAP(HISAT2.out.collect(), BUSCO.out.collect(), RNAQUAST.out, DETONATE.out.kc.collect(), DETONATE.out.contig.collect(), DETONATE.out.rsem.collect(), EX90N50.out.collect())
 }
 
 
