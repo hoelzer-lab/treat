@@ -35,14 +35,22 @@ assemblies_ch = Channel
               .map{ file -> tuple(file.simpleName, file) }
 
 
-assemblies_fullname = Channel
-              .fromPath(params.assemblies)
-              .map { file -> tuple(file.fileName, file) }
+assemblies_simplename = Channel
+              .fromPath(params.assemblies.tokenize(','))
+              .map { file -> file.simpleName }
+
+
+assemblies_rnaquast = Channel
+              .fromPath( params.assemblies.tokenize(',') )
+              .flatMap{ files(it) }
+assemblies_rnaquast_labels = Channel
+              .fromPath(params.assemblies.tokenize(','))
+              .map { file -> file.simpleName }
+              .collect()
+              .map{it -> it.join(' ')}
 
 // Need to be a value channel, because we want to use this unlimited times.
-reads_ch = Channel.value( tuple( file(params.reads).simpleName, params.reads) )
-
-reads_detonate = Channel.value( file(params.reads) )
+reads_ch = Channel.value( file(params.reads) )
 
 reference_ch = Channel.value( file(params.reference) )
 
@@ -65,8 +73,8 @@ annotation_ch = Channel.value( file(params.annotation) )
 
 
 // illumina_input_ch.paired.subscribe{println "$it"}
-result.paired.view{"$it"}
-result.single.view{"$it"}
+// result.paired.view{"$it"}
+// result.single.view{"$it"}
 
 
 // MAIN WORKFLOW
@@ -74,8 +82,10 @@ result.single.view{"$it"}
 include './modules/hisat2' params(output: params.output, dir: params.mappingdir, threads: params.threads, assemblies: assemblies_ch, reads: reads_ch)
 include './modules/busco' params(output: params.output, dir: params.buscodir, threads: params.threads, assemblies: assemblies_ch, busco: params.busco)
 include './modules/transrate' params(output: params.output, dir: params.transratedir, threads: params.threads)
-include './modules/rnaquast' params(output: params.output, dir: params.rnaquastdir, threads: params.threads, genome: reference_ch, annotation: annotation_ch, assemblies: assemblies_ch, reads: reads_ch)
-include './modules/detonate' params(output: params.output, dir: params.detonatedir, threads: params.threads, reference: params.reference, transcripts_ch: params.transcripts)
+include './modules/rnaquast' params(output: params.output, dir: params.rnaquastdir, threads: params.threads, genome: reference_ch, annotation: annotation_ch, assemblies: assemblies_rnaquast, reads: reads_ch, labels: assemblies_rnaquast_labels)
+include './modules/detonate' params(output: params.output, dir: params.detonatedir, threads: params.threads, reference: params.reference, transcripts: transcripts_ch, reads: reads_ch, assemblies: assemblies_ch)
+include './modules/ex90n50' params(output: params.output, dir: params.ex90n50dir, threads: params.threads, reads: reads_ch, assemblies: assemblies_ch)
+include './modules/extract_metrics' params(assemblies: assemblies_simplename, output: params.output, detonate_dir: params.detonatedir)
 
 
 // TRANSRATE(assemblies_ch)
@@ -85,8 +95,9 @@ workflow {
         HISAT2()
         BUSCO()
         RNAQUAST()
-        // DETONATE()
-
+        DETONATE()
+        EX90N50()
+        HEATMAP(HISAT2.out.collect(), BUSCO.out.collect(), RNAQUAST.out, DETONATE.out.kc.collect(), DETONATE.out.contig.collect(), DETONATE.out.rsem.collect(), EX90N50.out.collect())
 }
 
 

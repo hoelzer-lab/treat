@@ -8,23 +8,26 @@ workflow DETONATE {
 
   main:
     // performed once   
-    ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS(transcripts_ch)
-    RSEM_PREPARE_REFERENCE(transcripts_ch)
-    RSEM_CALCULATE_EXPRESSION(RSEM_PREPARE_REFERENCE.out, reads_detonate)
+    ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS(params.transcripts)
+    RSEM_PREPARE_REFERENCE(params.transcripts)
+    RSEM_CALCULATE_EXPRESSION(RSEM_PREPARE_REFERENCE.out, params.reads)
     SAMTOOLS_SORT(RSEM_CALCULATE_EXPRESSION.out.filter{ "~/*.bam/" })
     REF_EVAL_ESTIMATE_TRUE_ASSEMBLY(RSEM_PREPARE_REFERENCE.out, RSEM_CALCULATE_EXPRESSION.out, SAMTOOLS_SORT.out)
     RSEM_PREPARE_REFERENCE_2(REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
-    RSEM_CALCULATE_EXPRESSION_2(RSEM_PREPARE_REFERENCE_2.out, reads_detonate)
-    DETONATE7(reads_detonate, SAMTOOLS_SORT.out)
+    RSEM_CALCULATE_EXPRESSION_2(RSEM_PREPARE_REFERENCE_2.out, params.reads)
+    NUMBER_OF_READS(params.reads)
+    READ_LENGTH(SAMTOOLS_SORT.out)
     // performed for each assembly
-    RSEM_EVAL_CALCULATE_SCORE(ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS.out, reads_detonate, assemblies_ch)
-    REF_EVAL_KC(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, RSEM_CALCULATE_EXPRESSION_2.out)
-    BLAT_A_TO_B(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
-    BLAT_B_TO_A(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
-    REF_EVAL_CONTIG(assemblies_ch, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, BLAT_A_TO_B.out, BLAT_B_TO_A.out)
+    RSEM_EVAL_CALCULATE_SCORE(ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS.out, params.reads, params.assemblies, READ_LENGTH.out)
+    REF_EVAL_KC(params.assemblies, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out, RSEM_CALCULATE_EXPRESSION_2.out, NUMBER_OF_READS.out, READ_LENGTH.out)
+    BLAT(params.assemblies, REF_EVAL_ESTIMATE_TRUE_ASSEMBLY.out)
+    REF_EVAL_CONTIG(BLAT.out)
   emit:
-    RSEM_CALCULATE_EXPRESSION.out
+    kc = REF_EVAL_KC.out
+    contig = REF_EVAL_CONTIG.out
+    rsem = RSEM_EVAL_CALCULATE_SCORE.out
 }
+
 
 
 process ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS {
@@ -136,12 +139,11 @@ process RSEM_CALCULATE_EXPRESSION_2 {
   """
 }
 
-process DETONATE7 {
+process NUMBER_OF_READS {
   label 'DETONATE'
 
   input:
   file(reads)
-  file(sorted_bam)
 
   output:
   stdout()
@@ -149,10 +151,23 @@ process DETONATE7 {
   shell:
   """
     # Estimate the num-reads parameter, this is the number of reads times the read length equals the total number of nucleotides in the read set.
-    echo awk '{s++}END{print s/4}' ${reads}
+    awk '{s++}END{printf s/4}' ${reads}
+  """
+}
 
+process READ_LENGTH {
+  label 'DETONATE'
+
+  input:
+  file(sorted_bam)
+
+  output:
+  stdout()
+  
+  shell:
+  """
     # Get read length and insert size info via the mapped bam file from bowtie
-    #samtools stats rsem_expr.transcript.sorted.bam | grep -e '^SN\tmaximum length' | cut -f 3
+    samtools stats rsem_expr.transcript.sorted.bam | grep -e '^SN\tmaximum length' | awk -F" " '{printf(\$4)}'
   """
 }
 
@@ -166,15 +181,14 @@ process RSEM_EVAL_CALCULATE_SCORE {
   file('transcript_length_parameters.txt')
   file(reads)
   tuple val(name), file(assembly)
+  val (read_length)
 
-  
   output:
-  file("rsem_eval*")
+    file("rsem_eval*")
   
   shell:
   """
-  rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters transcript_length_parameters.txt ${reads} ${assembly} rsem_eval_${name} 100
-  #rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters transcript_length_parameters.txt ${reads} {assembly} {args.outDir}/rsem_eval_{tool} {readLength}
+  rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters transcript_length_parameters.txt ${reads} ${assembly} rsem_eval_${name} ${read_length}
   """
 }
 
@@ -184,20 +198,21 @@ process REF_EVAL_KC {
 
   input:
   tuple val(name), file(assembly)
-  file('ta_0.fa')
+  file('*')
   file(test)
+  val (number_of_reads)
+  val (read_length)
   
   output:
   file("kc_${name}.txt")
   
   shell:
   """
-  ref-eval --scores kc --A-seqs ${assembly} --B-seqs ta_0.fa --B-expr ta_0_expr.isoforms.results --kmerlen 75 --readlen 100 --num-reads 100 | tee kc_${name}.txt
-  #ref-eval --scores kc --A-seqs ${assembly} --B-seqs {args.outDir}/ta_0.fa --B-expr {args.outDir}/ta_0_expr.isoforms.results --kmerlen {args.readLength} --readlen {args.readLength} --num-reads {numReads} | tee kc_${name}.txt
+  ref-eval --scores kc --A-seqs ${assembly} --B-seqs ta_0.fa --B-expr ta_0_expr.isoforms.results --kmerlen ${read_length} --readlen ${read_length} --num-reads ${number_of_reads} | tee kc_${name}.txt
   """
 }
 
-process BLAT_A_TO_B {
+process BLAT {
   label 'DETONATE'
 
   input:
@@ -205,27 +220,14 @@ process BLAT_A_TO_B {
   file('ta_0.fa')
 
   output:
-  file("${name}_to_ta_0.psl")
-  
-  shell:
-  """
-  blat -minIdentity=80 ta_0.fa ${assembly} ${name}_to_ta_0.psl
-  """
-}
-
-process BLAT_B_TO_A {
-  label 'DETONATE'
-
-  input:
+  tuple file("ta_0_to_${name}.psl"), file("${name}_to_ta_0.psl")
   tuple val(name), file(assembly)
   file('ta_0.fa')
-
-  output:
-  file("ta_0_to_${name}.psl")
   
   shell:
   """
   blat -minIdentity=80 ${assembly} ta_0.fa ta_0_to_${name}.psl
+  blat -minIdentity=80 ta_0.fa ${assembly} ${name}_to_ta_0.psl
   """
 }
 
@@ -234,20 +236,20 @@ process REF_EVAL_CONTIG {
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "contig_nucl_${name}.txt"
 
   input:
+  tuple file(ta_to_assembly), file(assembly_to_ta)
   tuple val(name), file(assembly)
   file('ta_0.fa')
-  file(test)
-  file(test2)
-  
+
 
   output:
   file("contig_nucl_${name}.txt")
   
   shell:
   """
-  ref-eval --scores contig,nucl --weighted no --A-seqs ${assembly} --B-seqs ta_0.fa --A-to-B ${name}_to_ta_0.psl --B-to-A /ta_0_to_${name}.psl --min-frac-identity 0.90 | tee contig_nucl_${name}.txt
+  ref-eval --scores contig,nucl --weighted no --A-seqs ${assembly} --B-seqs ta_0.fa --A-to-B ${assembly_to_ta} --B-to-A ${ta_to_assembly} --min-frac-identity 0.90 > contig_nucl_${name}.txt
   """
+
 }
 
-// /* Comments:
-// */
+ /* Comments:
+ */
