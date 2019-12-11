@@ -16,6 +16,7 @@ class MetricMuncher:
 		self.rnaquast = {}
 		self.detonate = {}
 		self.mapping = {}
+		self.ex90n50 = {}
 
 	def read_transrate(self):
 		"""
@@ -73,6 +74,16 @@ class MetricMuncher:
 			percentage = float(reader.readline().rstrip('\n'))
 			self.mapping[assembly_name] = {'Remapping rate': percentage}
 
+	def read_ex90n50(self, ex90n50_file):
+		assembly_name = ex90n50_file.replace('_ExN50.stats', '')
+
+		with open(ex90n50_file, 'r') as reader:
+			for line in reader:
+				if line.startswith('90'):
+					ex, exn50, num_transcripts = line.split()
+					break
+		self.ex90n50[assembly_name] = {'Ex90N50': int(exn50), 'Num_transcripts_Ex90N50': int(num_transcripts)}
+
 	def create_all_metrics(self):
 		"""
 		Creates the final dataframe from all other metrics.
@@ -81,7 +92,8 @@ class MetricMuncher:
 		detonate_df = pd.DataFrame.from_dict(self.detonate)
 		mapping_df = pd.DataFrame.from_dict(self.mapping)
 		busco_df = pd.DataFrame.from_dict(self.busco)
-		frames = [detonate_df, mapping_df, self.rnaquast, busco_df]
+		ex90n50_df = pd.DataFrame.from_dict(self.ex90n50)
+		frames = [detonate_df, mapping_df, self.rnaquast, busco_df, ex90n50_df]
 		self.metrics = pd.concat(frames)
 
 		# tools = ['DETONATE'] * len(detonate_df) + ['HISAT2'] * len(mapping_df) + ['rnaQUAST'] * len(self.rnaquast) + ['BUSCO'] * len(busco_df)
@@ -97,14 +109,15 @@ class MetricMuncher:
 								'mean_orf_percent', 'score', 'p_bases_uncovered',
 								'kmer_compression_score', 'Score', 'unweighted_nucl_F1', 'unweighted_contig_F1',
 								'Complete and single-copy BUSCOs', 'Complete and duplicated BUSCOs', 'Fragmented BUSCOs', 'Missing BUSCOs', 
+								'Ex90N50',
 								'Remapping rate']
-								#								'Ex90N50', 
 			self.high_values = ['Database coverage', '95%-assembled isoforms', 
 							'mean_orf_percent', 'score',
 							'Score', 'kmer_compression_score', 'unweighted_nucl_F1', 'unweighted_contig_F1', 
 							'Complete and single-copy BUSCOs',
+							'Ex90N50',
 							'Remapping rate']
-							#							'Ex90N50', 
+
 			self.low_values = ['Duplication ratio', 'Misassemblies',
 							'p_bases_uncovered',
 							'Missing BUSCOs', 'Fragmented BUSCOs', 'Complete and duplicated BUSCOs']
@@ -112,13 +125,13 @@ class MetricMuncher:
 			metrics_to_extract = ['Database coverage', 'Duplication ratio', '95%-assembled isoforms', 'Misassemblies', 
 								'kmer_compression_score', 'Score', 'unweighted_nucl_F1', 'unweighted_contig_F1',
 								'Complete and single-copy BUSCOs', 'Complete and duplicated BUSCOs', 'Fragmented BUSCOs', 'Missing BUSCOs', 
-								'Remapping rate']
-								#								'Ex90N50', 
+								'Ex90N50',
+								'Remapping rate']						 
 			self.high_values = ['Database coverage', '95%-assembled isoforms', 
 							'Score', 'kmer_compression_score', 'unweighted_nucl_F1', 'unweighted_contig_F1', 
 							'Complete and single-copy BUSCOs',
+							'Ex90N50', 
 							'Remapping rate']
-							#							'Ex90N50', 
 			self.low_values = ['Duplication ratio', 'Misassemblies',
 							'Missing BUSCOs', 'Fragmented BUSCOs', 'Complete and duplicated BUSCOs']
 		assert len(self.high_values) + len(self.low_values) == len(metrics_to_extract), 'Missing metrics in high/low arrays.'
@@ -154,8 +167,8 @@ class MetricMuncher:
 								'Mean ORF (%)', 'Assembly score', 'Uncovered bases (%)',
 								'KC score', 'RSEM EVAL', 'Nucleotide F1', 'Contig F1',
 								'BUSCOs (CS)', 'BUSCOs (CD)', 'BUSCOs (F)', 'BUSCOs (M)', 
+								'Ex90N50',
 								'Remapping rate'])
-								#								'Ex90N50', 
 		else:
 			self.normalized_selected_metrics.rename(index={
 					'Database coverage': 'Database\ncoverage',
@@ -174,8 +187,8 @@ class MetricMuncher:
 			self.normalized_selected_metrics = self.normalized_selected_metrics.reindex(['Database\ncoverage', 'Duplication ratio', '95 %-assembled\nisoforms', 'Misassemblies',
 							'KC score', 'RSEM EVAL', 'Nucleotide F1', 'Contig F1',
 							'BUSCOs (CS)', 'BUSCOs (CD)', 'BUSCOs (F)', 'BUSCOs (M)', 
+							'Ex90N50',
 							'Remapping rate'])
-							#							'Ex90N50', 
 
 	def save_selected_normalized_metrics(self, file_name, sep='\t'):
 		self.normalized_selected_metrics.to_csv(file_name, sep=sep)
@@ -262,6 +275,7 @@ rnaquast_stats = glob.glob('short_report.tsv')[0]
 contig_stats = sorted(glob.glob('contig_nucl*'))
 kc_stats = sorted(glob.glob('kc_*'))
 rsem_stats = sorted(glob.glob('*.score'))
+ex90n50_stats = sorted(glob.glob('*.stats'))
 
 
 mm = MetricMuncher()
@@ -272,6 +286,8 @@ for stats in busco_stats:
 	mm.read_busco(stats)
 for contig, kc, rsem in zip(contig_stats, kc_stats, rsem_stats):
 	mm.read_detonate(kc, contig, rsem)
+for ex90n50 in ex90n50_stats:
+	mm.read_ex90n50(ex90n50)
 
 
 mm.create_all_metrics()

@@ -7,8 +7,9 @@ workflow HEATMAP{
       DETONATE_1
       DETONATE_2
       DETONATE_3
+      EX90N50
     main:
-        COLLECT_INFO(HISAT, BUSCO, RNAQUAST, DETONATE_1, DETONATE_2, DETONATE_3)
+        COLLECT_INFO(HISAT, BUSCO, RNAQUAST, DETONATE_1, DETONATE_2, DETONATE_3, EX90N50)
 }
 
 process COLLECT_INFO {
@@ -23,6 +24,7 @@ process COLLECT_INFO {
     file(kc)
     file(contig)
     file(rsem)
+    file(ex90n50)
 
   output:
   file("all_metrics.csv")
