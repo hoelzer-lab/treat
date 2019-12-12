@@ -1,5 +1,9 @@
 name: DETONATE
 channels:
   - bioconda
+  - conda-forge
 dependencies:
-  - detonate
+  - detonate=1.11 
+  - bowtie=1.2.3 
+  - blat=36 
+  - samtools=1.3

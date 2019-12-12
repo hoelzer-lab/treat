@@ -46,7 +46,7 @@ process ESTIMATE_TRANSCRIPTS_LENGTH_PARAMETERS {
 }
 
 process RSEM_PREPARE_REFERENCE {
-  label 'DETONATE'
+  label 'RSEM'
 
   input:
   file(transcripts)
@@ -61,7 +61,7 @@ process RSEM_PREPARE_REFERENCE {
 }
 
 process RSEM_CALCULATE_EXPRESSION {
-  label 'DETONATE'
+  label 'RSEM'
 
   input:
   file(assemblies)
@@ -109,7 +109,7 @@ process REF_EVAL_ESTIMATE_TRUE_ASSEMBLY {
 }
 
 process RSEM_PREPARE_REFERENCE_2 {
-  label 'DETONATE'
+  label 'RSEM'
 
   input:
   file('ta_0.fa')  
@@ -124,7 +124,7 @@ process RSEM_PREPARE_REFERENCE_2 {
 }
 
 process RSEM_CALCULATE_EXPRESSION_2 {
-  label 'DETONATE'
+  label 'RSEM'
 
   input:
   file('*')
@@ -188,7 +188,7 @@ process RSEM_EVAL_CALCULATE_SCORE {
   
   shell:
   """
-  rsem-eval-calculate-score -p !{params.threads} --transcript-length-parameters transcript_length_parameters.txt ${reads} ${assembly} rsem_eval_${name} ${read_length}
+  rsem-eval-calculate-score ${reads} ${assembly} rsem_eval_${name} ${read_length} --transcript-length-parameters transcript_length_parameters.txt -p !{params.threads}
   """
 }
 
