@@ -1,20 +1,31 @@
 /*
 * Transrate call
 */
-process TRANSRATE {
-  label 'TRANSRATE'
-  publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}/assemblies.csv"
+workflow TRANSRATE{
+  get:
+    ASSEMBLIES
+    READS
+  main:
+    TRANSRATE_RUN(ASSEMBLIES, READS)
+  emit:
+    TRANSRATE.out
+}
+
+process TRANSRATE_RUN {
+  label "TRANSRATE"
+  publishDir "${params.output}/${params.dir}/", mode: "copy", pattern: "transrate_out/assemblies.csv"
 
   input:
-  set val(name), file(assembly)
+  file(assemblies)
+  tuple file(leftReads), file(rightReads)
+
 
   output:
-  set val(name), file("${name}/assemblies.csv")
-  
+  file("transrate_out/assemblies.csv")
   
   shell:
   """
-  transrate --output !{name} --assembly !{assembly} --reference ${params.transcripts}
+  transrate --left ${leftReads} --right ${rightReads} --reference !{params.transcripts} --threads !{params.threads} --output transrate_out --assembly ${assemblies}'
   """ 
 }
 
