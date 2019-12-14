@@ -43,6 +43,7 @@ assemblies_simplename = Channel
 assemblies_rnaquast = Channel
               .fromPath( params.assemblies.tokenize(',') )
               .flatMap{ files(it) }
+              
 assemblies_rnaquast_labels = Channel
               .fromPath(params.assemblies.tokenize(','))
               .map { file -> file.simpleName }

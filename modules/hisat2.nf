@@ -35,6 +35,7 @@ process HISAT2_SINGLE {
 }
 
 process SAMTOOLS_FLAGSTATS {
+  label 'HISAT2'
   input:
     tuple val(name), file(assembly)
 
@@ -49,6 +50,7 @@ process SAMTOOLS_FLAGSTATS {
 
 process CALCULATE_MAPPED_READS {
   publishDir "${params.output}/${params.dir}/", mode:'copy', pattern: "${name}_mapping_stats.txt"
+  label 'BASICS'
 
   input:
     tuple val(name), file(mapping_stats)

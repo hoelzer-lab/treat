@@ -3,11 +3,11 @@
 */ 
 
 // get BUSCO db
-include './buscoGetDB' 
+include './buscoGetDB' params(busco: params.busco)
 
 workflow BUSCO{
     main:
-        get_database(params.busco)
+        get_database()
         run_busco(params.assemblies, get_database.out)
         plot_busco(run_busco.out.collect())
     emit:
@@ -28,9 +28,10 @@ process run_busco {
 
   shell:
   """
+  tar -xzf ${db}
   export AUGUSTUS_CONFIG_PATH="/opt/conda/config/"
   # run BUSCO
-  run_BUSCO.py -i ${assembly} -o ${name} -l ${db} -m tran -c ${params.threads} -t ./ -z
+  run_BUSCO.py -i ${assembly} -o ${name} -l ${db.simpleName} -m tran -c ${params.threads} -t ./ -z
   cp run_${name}/short_summary_${name}.txt short_summary_${name}.txt
   """
 }

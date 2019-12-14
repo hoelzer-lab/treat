@@ -10,21 +10,19 @@ It also comes with a "auto-download" if a database is not available. Doing it th
 
 
 process get_database {
-  storeDir 'nextflow-autodownload-databases/busco'
+  storeDir "nextflow-autodownload-databases/busco/${params.busco}"
   stageOutMode 'move'
-  label 'BUSCO'
   containerOptions = "--user root"
-
-  input:
-    val(db)
+  label 'BASICS'
 
   output:
-    file(db)
+    file("${params.busco}.tar.gz")
     
   script:
     """
-    wget --quiet http://busco.ezlab.org/v2/datasets/${db}.tar.gz 
-    tar -xzf ${db}.tar.gz 
-    rm ${db}.tar.gz
+    wget --quiet http://busco.ezlab.org/v2/datasets/${params.busco}.tar.gz 
+    #tar -xzf ${params.busco}.tar.gz 
+    #rm ${params.busco}.tar.gz
+    #rm ${params.busco}/${params.busco}.tar.gz
     """
 }

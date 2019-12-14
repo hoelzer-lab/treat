@@ -19,7 +19,7 @@ nextflow run main.nf --help
 
 Simple example execution:
 ````
-nextflow run main.nf --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq --threads 2 --busco bacteria_odb9 -profile standard
+nextflow run main.nf --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq --reference test_data/eco_genome.fa --annotation test_data/eco_annotation.gff3 --threads 6 --busco bacteria_odb9 -profile standard
 ````
 
 ## Profiles
@@ -30,6 +30,9 @@ The workflow can be deployed in different environments.
 * __conda__: uses conda environments and can be run locally
 * __googlegenomics__: uses the google cloud and needs to configured manually to run with your gcloud environment
 
+## Overview
+
+![figures/dag.png]
 
 ## Motivation
 
