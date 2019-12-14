@@ -32,7 +32,7 @@ The workflow can be deployed in different environments.
 
 ## Overview
 
-![figures/dag.png]
+![DAG](figures/dag.png)
 
 ## Motivation
 
