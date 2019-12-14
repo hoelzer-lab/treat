@@ -3,6 +3,8 @@
 ![Nextflow](https://img.shields.io/badge/Language-Nextflow-green.svg)
 [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/martinhoelzer?label=%40martinhoelzer&style=social)](https://twitter.com/martinhoelzer)
 
+Authors: Lasse Faber, Martin H&ooml;lzer
+
 # TREAT: TranscRiptome EvaluATion
 
 _Treat your assemblies well!_
@@ -19,8 +21,11 @@ nextflow run main.nf --help
 
 Simple example execution:
 ````
-nextflow run main.nf --assemblies test_data/rna-spades.fasta --reads test_data/eco.fastq --reference test_data/eco_genome.fa --annotation test_data/eco_annotation.gff3 --threads 6 --busco bacteria_odb9 -profile standard
+nextflow run main.nf --assemblies 'test_data/*.fasta' --reads test_data/eco.fastq --reference test_data/eco_genome.fa --annotation test_data/eco_annotation.gff3 --threads 8 --busco bacteria_odb9 -profile standard
 ````
+
+### Example output for test command
+![heatmap](figures/heatmap.svg)
 
 ## Profiles
 
@@ -32,7 +37,7 @@ The workflow can be deployed in different environments.
 
 ## Overview
 
-![DAG](figures/dag.png)
+![dag](figures/dag.png)
 
 ## Motivation
 
