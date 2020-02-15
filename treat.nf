@@ -34,15 +34,14 @@ assemblies_ch = Channel
               .flatMap{ files(it) }
               .map{ file -> tuple(file.simpleName, file) }
 
-
 assemblies_simplename = Channel
               .fromPath(params.assemblies.tokenize(','))
               .map { file -> file.simpleName }
 
-
 assemblies_rnaquast = Channel
               .fromPath( params.assemblies.tokenize(',') )
               .flatMap{ files(it) }
+              .view()
               
 assemblies_rnaquast_labels = Channel
               .fromPath(params.assemblies.tokenize(','))
@@ -98,7 +97,13 @@ workflow {
         RNAQUAST()
         DETONATE()
         EX90N50()
-        HEATMAP(HISAT2.out.collect(), BUSCO.out.collect(), RNAQUAST.out, DETONATE.out.kc.collect(), DETONATE.out.contig.collect(), DETONATE.out.rsem.collect(), EX90N50.out.collect())
+        HEATMAP(HISAT2.out.collect(), 
+            BUSCO.out.collect(), 
+            RNAQUAST.out, 
+            DETONATE.out.kc.collect(), 
+            DETONATE.out.contig.collect(), 
+            DETONATE.out.rsem.collect(), 
+            EX90N50.out.collect())
 }
 
 
